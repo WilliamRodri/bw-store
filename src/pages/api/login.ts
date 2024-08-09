@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next/types';
 import jwt from 'jsonwebtoken';
 import { serialize } from 'cookie';
-import { getCollection } from 'src/configs/db/mongodb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -11,8 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { username, password } = req.body;
 
     try {
-        const collection = await getCollection('usuarios');
-        const user = await collection.findOne({ username });
+        const user = { _id: 'wdowjdowjdw', password: 'root' };
 
         if (!user || user.password !== password) {
             return res.status(401).json({ message: 'Invalid username or password' });

@@ -17,7 +17,8 @@
     "skipDefaultLibCheck": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
     "src"
