@@ -1,7 +1,8 @@
-import { Button, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, TablePagination, CircularProgress, Modal, Box, Checkbox } from "@mui/material";
-import { DeleteEmpty, EyeArrowRight, Plus, Printer } from "mdi-material-ui";
+import { Button, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, TablePagination, CircularProgress, Modal, Box, Checkbox, Divider } from "@mui/material";
+import { DeleteCircleOutline, DeleteEmpty, EyeArrowRight, Plus, Printer } from "mdi-material-ui";
 import { useRouter } from "next/router";
 import { Fragment, useEffect, useState } from "react";
+import ProductSelectionModal from "./ProductSelectionModal";
 
 const TableViewSales = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -17,8 +18,120 @@ const TableViewSales = () => {
     const [openConfirmModal, setOpenConfirmModal] = useState<boolean>(false);
     const [saleToDelete, setSaleToDelete] = useState<number | null>(null);
     const [returnsStock, setReturnsStock] = useState<boolean>(false);
-
+    const [clients, setClients] = useState<any[]>([]);
     const router = useRouter();
+
+    // Modal de "NOVA VENDA"
+    const [openProductModal, setOpenProductModal] = useState<boolean>(false);
+    const [openNewSaleModal, setOpenNewSaleModal] = useState<boolean>(false);
+    const [newSale, setNewSale] = useState<any>({
+        clientId: '',
+        paymentMethodId: '',
+        saleDate: new Date().toISOString().split('T')[0],
+        products: [],
+        discount: 0,
+        subtotal: 0,
+    });
+
+    const [errors, setErrors] = useState({
+        clientId: false,
+        paymentMethodId: false,
+        saleDate: false,
+        products: false,
+    });
+    const validateFields = () => {
+        const newErrors = {
+            clientId: newSale.clientId === "",
+            paymentMethodId: newSale.paymentMethodId === "",
+            saleDate: newSale.saleDate === "",
+            products: newSale.products.length === 0,
+        };
+    
+        setErrors(newErrors);
+    
+        // Retorna true se todos os campos forem válidos (sem erros)
+        return !Object.values(newErrors).includes(true);
+    };        
+
+    const handleOpenNewSaleModal = () => {
+        setOpenNewSaleModal(true);
+    };
+    
+    const handleCloseNewSaleModal = () => {
+        setNewSale({
+            clientId: '',
+            paymentMethodId: '',
+            saleDate: new Date().toISOString().split('T')[0],
+            products: [],
+            discount: 0,
+            subtotal: 0,
+        });
+        setOpenNewSaleModal(false);
+    };
+
+    const handleSubmitNewSale = async () => {
+        if (validateFields()) {
+            const combinedData = {
+                client: newSale.clientId,
+                date: newSale.saleDate,
+                paymentMethod: newSale.paymentMethodId,
+                items: newSale.products.map((product: any) => ({
+                    product_id: product.id,
+                    quantity: product.quantity || 1, // Defina um valor padrão se quantity estiver ausente
+                    discountProduct: product.discount || 0,
+                })),
+                discountSale: newSale.discount,
+                subtotal: newSale.subtotal,
+            };
+    
+            try {
+                setLoading(true);
+                const response = await fetch(`/api/sales/insertSale/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(combinedData),
+                });
+    
+                if (!response.ok) {
+                    console.error('Failed to generate the sale');
+                    alert('Erro ao gerar a venda. Por favor, tente novamente.');
+                } else {
+                    router.push('/sales'); // Atualiza a página para refletir a nova venda
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Erro ao gerar a venda. Por favor, tente novamente.');
+            } finally {
+                setOpenNewSaleModal(false);
+                setLoading(false);
+            }
+        } else {
+            alert("Por favor, preencha todos os campos obrigatórios.");
+        }
+    };    
+    
+    useEffect(() => {
+        const subtotal = newSale.products.reduce((acc: number, product: any) => 
+            acc + (parseFloat(product.price) * (product.quantity || 1)), 0);
+        
+        const discountedSubtotal = subtotal - newSale.discount;
+    
+        setNewSale((prevSale: any) => ({
+            ...prevSale,
+            subtotal: discountedSubtotal > 0 ? discountedSubtotal : 0  // Não permitir que o subtotal seja negativo
+        }));
+    }, [newSale.products, newSale.discount]);        
+
+    const handleAddProduct = (product: any, quantity: number) => {
+        const updatedProduct = { ...product, quantity };
+        setNewSale({
+            ...newSale,
+            products: [...newSale.products, updatedProduct]
+        });
+        setOpenProductModal(false);
+    };
 
     const colunasTabelaVendas = [
         { id: 'id', label: '#', minWidth: 66, align: 'left' as const },
@@ -33,12 +146,19 @@ const TableViewSales = () => {
             try {
                 setLoading(true);
                 const response = await fetch(`/api/vendas`);
+                const responseClients = await fetch(`/api/usuarios`);
+                
                 const data = await response.json();
+                const dataClients = await responseClients.json();
 
+                // Dados das Vendas
                 setSales(data.sales);
                 setPaymentMethods(data.paymentMethod);
                 setSalesProducts(data.salesProducts);
                 setProducts(data.products);
+
+                // Dados dos Clientes
+                setClients(dataClients.clients);
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -145,7 +265,7 @@ const TableViewSales = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{ margin: '10px 20px' }}
                 />
-                <Button variant="contained" startIcon={<Plus />} style={{ margin: '10px 20px' }}>
+                <Button variant="contained" startIcon={<Plus />} style={{ margin: '10px 20px' }} onClick={handleOpenNewSaleModal}>
                     GERAR NOVA VENDA
                 </Button>
                 {loading ? (
@@ -181,7 +301,7 @@ const TableViewSales = () => {
                                                 return (
                                                     <TableCell key={column.id} align={column.align}>
                                                         {column.id === 'total' ? (
-                                                            `R$ ${parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`
+                                                            `${parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`
                                                         ) : column.id === 'sale_date' ? (
                                                             new Date(value).toLocaleDateString('pt-BR')
                                                         ) : column.id === 'payment_method_id' ? (
@@ -272,6 +392,149 @@ const TableViewSales = () => {
                             Excluir
                         </Button>
                     </Box>
+                </Box>
+            </Modal>
+
+            <Modal
+                open={openNewSaleModal}
+                onClose={handleCloseNewSaleModal}
+                aria-labelledby="new-sale-modal-title"
+                aria-describedby="new-sale-modal-description"
+            >
+                <Box
+                    sx={{
+                        width: {
+                            xs: '90%', // 90% da largura para telas pequenas
+                            sm: 400, // 400px para telas médias
+                            md: 500, // 500px para telas grandes
+                        },
+                        maxHeight: '80vh', // Limita a altura máxima da modal para 80% da altura da viewport
+                        bgcolor: 'background.paper',
+                        padding: {
+                            xs: 2, // padding menor para telas pequenas
+                            sm: 3, // padding médio para telas médias
+                            md: 4, // padding maior para telas grandes
+                        },
+                        margin: 'auto',
+                        marginTop: {
+                            xs: '10%', // margem superior maior para centralizar em telas pequenas
+                            sm: '5%',  // margem superior menor em telas médias e grandes
+                        },
+                        borderRadius: 1,
+                        boxShadow: 24, // adiciona sombra para melhor visualização
+                        overflowY: 'auto', // Adiciona rolagem vertical quando necessário
+                        '&::-webkit-scrollbar': {
+                            width: '8px', // Largura da barra de rolagem
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            background: 'transparent', // Fundo transparente
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: '#ffffff', // Cor da barra de rolagem
+                            borderRadius: '4px', // Borda arredondada
+                        },
+                        '&::-webkit-scrollbar-thumb:hover': {
+                            backgroundColor: '#bdbdbd', // Cor ao passar o mouse
+                        },
+                    }}
+                >
+                    <Typography id="new-sale-modal-title" variant="h6" component="h2">
+                        NOVA VENDA
+                    </Typography>
+                    <Divider />
+                    <TextField
+                        select
+                        value={newSale.clientId}
+                        onChange={(e) => setNewSale({ ...newSale, clientId: e.target.value })}
+                        fullWidth
+                        margin="normal"
+                        SelectProps={{
+                            native: true,
+                        }}
+                    >
+                        <option value="">SELECIONE UM CLIENTE</option>
+                        {clients.map((client: any) => (
+                            <option key={client.id} value={client.id}>{client.name}</option>
+                        ))}
+                    </TextField>
+                    <TextField
+                        select
+                        value={newSale.paymentMethodId}
+                        onChange={(e) => setNewSale({ ...newSale, paymentMethodId: e.target.value })}
+                        fullWidth
+                        margin="normal"
+                        SelectProps={{
+                            native: true,
+                        }}
+                    >
+                        <option value="">SELECIONE UMA FORMA DE PAGAMENTO</option>
+                        {paymentMethods.map(paymentMethod => (
+                            <option key={paymentMethod.id} value={paymentMethod.id}>{paymentMethod.type_payment}</option>
+                        ))}
+                    </TextField>
+                    <TextField
+                        type="date"
+                        label="DATA DA VENDA"
+                        value={newSale.saleDate}
+                        onChange={(e) => setNewSale({ ...newSale, saleDate: e.target.value })}
+                        fullWidth
+                        margin="normal"
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                    />
+                    <Divider />
+                    <Box sx={{ marginTop: 2 }}>
+                    <Typography variant="h6">PRODUTOS</Typography>
+                    <Button variant="contained" color="primary" sx={{ marginTop: "10px", marginBottom: "10px" }} onClick={() => setOpenProductModal(true)}>
+                        ADICIONAR PRODUTO
+                    </Button>
+
+                    {newSale.products.length > 0 ? (
+                        newSale.products.map((product: any, index: any) => (
+                            <Box key={index} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3, marginTop: 3 }}>
+                                <Typography>
+                                    {product.name} - R$ {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} - QTD: {product.quantity}
+                                </Typography>
+                                <IconButton
+                                    color="error"
+                                    onClick={() => {
+                                        const updatedProducts = newSale.products.filter((_: any, i: any) => i !== index);
+                                        setNewSale({ ...newSale, products: updatedProducts });
+                                    }}
+                                >
+                                    <DeleteCircleOutline />
+                                </IconButton>
+                            </Box>
+                        ))
+                    ) : (
+                        <Typography sx={{ marginTop: 3, marginBottom: 3 }}>NENHUM PRODUTO ADICIONADO</Typography>
+                    )}
+
+                        <ProductSelectionModal
+                            open={openProductModal}
+                            onClose={() => setOpenProductModal(false)}
+                            onSelectProduct={handleAddProduct}
+                            products={products}
+                        />
+                    </Box>
+                    <Divider />
+                    <TextField
+                        type="number"
+                        label="DESCONTO"
+                        value={newSale.discount}
+                        onChange={(e) => setNewSale({ ...newSale, discount: parseFloat(e.target.value) || 0 })}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <Typography variant="h6" sx={{ marginTop: 6, marginBottom: 5 }}>SUBTOTAL: {`${newSale.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}</Typography>
+                    <Divider />
+                    <Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }} onClick={() => handleSubmitNewSale()}>
+                        FINALIZAR VENDA
+                    </Button>
+                    <Button variant="contained" color="error" fullWidth sx={{ marginTop: 2 }} onClick={() => handleCloseNewSaleModal()}>
+                        CANCELAR
+                    </Button>
                 </Box>
             </Modal>
         </Fragment>

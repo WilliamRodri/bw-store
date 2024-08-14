@@ -4,8 +4,18 @@ export default async function updateData(table: string, data: object, id: number
     const mysql = await Mysql();
 
     try {
-        const updateQuery = `UPDATE ${table} SET ? WHERE id = ?`;
-        const [result]: any = await mysql.execute(updateQuery, [data, id]);
+        // Obter as chaves e valores dos dados
+        const columns = Object.keys(data).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(data);
+        
+        // Adicionar o ID ao final dos valores
+        values.push(id);
+
+        // Construir a query SQL
+        const updateQuery = `UPDATE ${table} SET ${columns} WHERE id = ?`;
+
+        // Executar a query
+        const [result]: any = await mysql.execute(updateQuery, values);
 
         return result;
     } catch (error) {

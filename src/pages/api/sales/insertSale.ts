@@ -1,0 +1,49 @@
+import type { NextApiRequest, NextApiResponse } from 'next/types';
+import { Mysql } from 'src/configs/db/mysql';
+import insertData from 'src/lib/querys/insert';
+import selectDataWithCondition from 'src/lib/querys/selectDataWithCondition';
+import updateData from 'src/lib/querys/update';
+
+export default async function insertSale(req: NextApiRequest, res: NextApiResponse) {
+    const mysql = await Mysql();
+
+    if (req.method === "POST") {
+        try {
+            const data = req.body;
+            const items = data.items;
+    
+            const regex = /\d+(\.\d{1,2})?/;
+            const subtotal = parseFloat(data.subtotal);
+    
+            const saleId = await insertData('sales', {
+                total: subtotal,
+                discount: parseFloat(data.discountSale),
+                client_id: data.client,
+                sale_date: data.date,
+                payment_method_id: data.paymentMethod,
+            });
+    
+            for (const item of items) {
+                await insertData('sale_products', {
+                    sale_id: saleId,
+                    product_id: item.id,
+                    quantity: parseInt(item.quantity),
+                    discountProduct: parseFloat(item.discount) || 0
+                });
+    
+                const product = await selectDataWithCondition('products', 'id', item.id);
+                const newStock = product[0].stock - parseInt(item.quantity);
+                await updateData('products', { stock: newStock }, item.id);
+            }
+    
+            return res.status(200).json({ id: saleId });
+        } catch (error) {
+            console.error("Error generate sale: ", error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        } finally {
+            await mysql.end();
+        }
+    } else {
+        res.status(405).json({ error: `Método ${req.method} não permitido.` });
+    }
+}

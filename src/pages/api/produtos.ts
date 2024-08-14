@@ -3,8 +3,8 @@ import selectData from 'src/lib/querys/select';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const clients = await selectData('clients');
-    res.status(200).json({clients});
+    const products = await selectData('products');
+    res.status(200).json({products});
   } catch (error) {
     console.error("Error connecting to the database or fetching data", error);
     res.status(500).json({ error: 'Database connection or query failed' });
