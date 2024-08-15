@@ -61,7 +61,7 @@ const ProductSelectionModal = ({ open, onClose, onSelectProduct, products }: any
                         filteredProducts.map((product: any) => (
                             product.stock > 0 ? (
                                 <ListItem key={product.id} button onClick={() => handleProductSelect(product)}>
-                                    <Typography>{product.name} - QTD: {product.stock}</Typography>
+                                    <Typography>{product.name} - R$ {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} - QTD: {product.stock}</Typography>
                                 </ListItem>
                             ) : null
                         ))

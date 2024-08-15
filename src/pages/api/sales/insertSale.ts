@@ -11,8 +11,7 @@ export default async function insertSale(req: NextApiRequest, res: NextApiRespon
         try {
             const data = req.body;
             const items = data.items;
-    
-            const regex = /\d+(\.\d{1,2})?/;
+
             const subtotal = parseFloat(data.subtotal);
     
             const saleId = await insertData('sales', {
@@ -26,14 +25,14 @@ export default async function insertSale(req: NextApiRequest, res: NextApiRespon
             for (const item of items) {
                 await insertData('sale_products', {
                     sale_id: saleId,
-                    product_id: item.id,
+                    product_id: item.product_id,
                     quantity: parseInt(item.quantity),
-                    discountProduct: parseFloat(item.discount) || 0
+                    discountProduct: parseFloat(item.discountProduct) || 0
                 });
     
-                const product = await selectDataWithCondition('products', 'id', item.id);
+                const product = await selectDataWithCondition('products', 'id', item.product_id);
                 const newStock = product[0].stock - parseInt(item.quantity);
-                await updateData('products', { stock: newStock }, item.id);
+                await updateData('products', { stock: newStock }, item.product_id);
             }
     
             return res.status(200).json({ id: saleId });

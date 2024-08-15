@@ -22,12 +22,12 @@ const TableViewSales = () => {
     const router = useRouter();
 
     // Modal de "NOVA VENDA"
-    const [openProductModal, setOpenProductModal] = useState<boolean>(false);
+    const [openProductModal, setOpenProductModal] = useState(false);
     const [openNewSaleModal, setOpenNewSaleModal] = useState<boolean>(false);
     const [newSale, setNewSale] = useState<any>({
         clientId: '',
         paymentMethodId: '',
-        saleDate: new Date().toISOString().split('T')[0],
+        saleDate: '',
         products: [],
         discount: 0,
         subtotal: 0,
@@ -77,15 +77,16 @@ const TableViewSales = () => {
                 paymentMethod: newSale.paymentMethodId,
                 items: newSale.products.map((product: any) => ({
                     product_id: product.id,
-                    quantity: product.quantity || 1, // Defina um valor padrão se quantity estiver ausente
+                    quantity: product.quantity || 1,
                     discountProduct: product.discount || 0,
                 })),
                 discountSale: newSale.discount,
                 subtotal: newSale.subtotal,
             };
-    
+
             try {
                 setLoading(true);
+                console.log(combinedData);
                 const response = await fetch(`/api/sales/insertSale/`, {
                     method: 'POST',
                     headers: {
@@ -93,12 +94,13 @@ const TableViewSales = () => {
                     },
                     body: JSON.stringify(combinedData),
                 });
-    
+
                 if (!response.ok) {
                     console.error('Failed to generate the sale');
                     alert('Erro ao gerar a venda. Por favor, tente novamente.');
                 } else {
-                    router.push('/sales'); // Atualiza a página para refletir a nova venda
+                    const responseId = await response.json();
+                    print(responseId.id);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -113,24 +115,22 @@ const TableViewSales = () => {
     };    
     
     useEffect(() => {
-        const subtotal = newSale.products.reduce((acc: number, product: any) => 
+        const subtotal = newSale.products.reduce((acc: number, product: any) =>
             acc + (parseFloat(product.price) * (product.quantity || 1)), 0);
-        
+
         const discountedSubtotal = subtotal - newSale.discount;
-    
+
         setNewSale((prevSale: any) => ({
             ...prevSale,
             subtotal: discountedSubtotal > 0 ? discountedSubtotal : 0  // Não permitir que o subtotal seja negativo
         }));
     }, [newSale.products, newSale.discount]);        
 
-    const handleAddProduct = (product: any, quantity: number) => {
-        const updatedProduct = { ...product, quantity };
-        setNewSale({
-            ...newSale,
-            products: [...newSale.products, updatedProduct]
-        });
-        setOpenProductModal(false);
+    const handleAddProduct = (product: any) => {
+        setNewSale((prevSale: any) => ({
+            ...prevSale,
+            products: [...prevSale.products, product]
+        }));
     };
 
     const colunasTabelaVendas = [
@@ -348,16 +348,18 @@ const TableViewSales = () => {
             >
                 <Box sx={{ width: 400, bgcolor: 'background.paper', padding: 4, margin: 'auto', marginTop: '10%', borderRadius: 1 }}>
                     <Typography id="modal-title" variant="h6" component="h2">
-                        Detalhes da Venda - {selectedSale?.id}
+                        DETALHES DA VENDA - {selectedSale?.id}
                     </Typography>
-                    <Typography variant="body1"><strong>Cliente:</strong> {selectedSale?.client_id}</Typography>
-                    <Typography variant="body1"><strong>Total:</strong> {`R$ ${parseFloat(selectedSale?.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}</Typography>
-                    <Typography variant="body1"><strong>Data:</strong> {new Date(selectedSale?.sale_date).toLocaleDateString('pt-BR')}</Typography>
-                    <Typography variant="body1"><strong>Quantidade de Produtos:</strong> {salesProducts.filter((item: any) => item.sale_id === selectedSale?.id).length}</Typography>
+                    <Divider />
+                    <Typography variant="body1"><strong>CLIENTE:</strong> {selectedSale?.client_id}</Typography>
+                    <Typography variant="body1"><strong>TOTAL DA VENDA:</strong> {`${parseFloat(selectedSale?.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}</Typography>
+                    <Typography variant="body1"><strong>DATA DA VENDA:</strong> {new Date(selectedSale?.sale_date).toLocaleDateString('pt-BR')}</Typography>
+                    <Divider />
                     <Box sx={{ marginTop: 2 }}>
-                        <Typography variant="h6" component="h3">Produtos:</Typography>
+                        <Typography variant="h6" component="h3">PRODUTOS DA COMPRA:</Typography>
                         {selectedSale && getProductDetails(selectedSale.id)}
                     </Box>
+                    <Divider />
                     <Button onClick={handleCloseModal} sx={{ marginTop: 2 }}>
                         Fechar
                     </Button>
@@ -404,43 +406,35 @@ const TableViewSales = () => {
                 <Box
                     sx={{
                         width: {
-                            xs: '90%', // 90% da largura para telas pequenas
-                            sm: 400, // 400px para telas médias
-                            md: 500, // 500px para telas grandes
+                            xs: '90%',
+                            sm: 400,
+                            md: 500,
                         },
-                        maxHeight: '80vh', // Limita a altura máxima da modal para 80% da altura da viewport
+                        maxHeight: '80vh',
                         bgcolor: 'background.paper',
                         padding: {
-                            xs: 2, // padding menor para telas pequenas
-                            sm: 3, // padding médio para telas médias
-                            md: 4, // padding maior para telas grandes
+                            xs: 2,
+                            sm: 3,
+                            md: 4,
                         },
                         margin: 'auto',
                         marginTop: {
-                            xs: '10%', // margem superior maior para centralizar em telas pequenas
-                            sm: '5%',  // margem superior menor em telas médias e grandes
+                            xs: '10%',
+                            sm: '5%',
                         },
                         borderRadius: 1,
-                        boxShadow: 24, // adiciona sombra para melhor visualização
-                        overflowY: 'auto', // Adiciona rolagem vertical quando necessário
-                        '&::-webkit-scrollbar': {
-                            width: '8px', // Largura da barra de rolagem
-                        },
-                        '&::-webkit-scrollbar-track': {
-                            background: 'transparent', // Fundo transparente
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                            backgroundColor: '#ffffff', // Cor da barra de rolagem
-                            borderRadius: '4px', // Borda arredondada
-                        },
-                        '&::-webkit-scrollbar-thumb:hover': {
-                            backgroundColor: '#bdbdbd', // Cor ao passar o mouse
-                        },
+                        boxShadow: 24,
+                        overflowY: 'auto',
                     }}
                 >
-                    <Typography id="new-sale-modal-title" variant="h6" component="h2">
-                        NOVA VENDA
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography id="new-sale-modal-title" variant="h6" component="h2">
+                            NOVA VENDA
+                        </Typography>
+                        <Button variant="contained" color="primary" onClick={() => handleCloseNewSaleModal()}>
+                            CANCELAR
+                        </Button>
+                    </Box>
                     <Divider />
                     <TextField
                         select
@@ -485,31 +479,30 @@ const TableViewSales = () => {
                     />
                     <Divider />
                     <Box sx={{ marginTop: 2 }}>
-                    <Typography variant="h6">PRODUTOS</Typography>
-                    <Button variant="contained" color="primary" sx={{ marginTop: "10px", marginBottom: "10px" }} onClick={() => setOpenProductModal(true)}>
-                        ADICIONAR PRODUTO
-                    </Button>
+                        <Typography variant="h6">PRODUTOS</Typography>
+                        <Button variant="contained" color="primary" sx={{ marginTop: "10px", marginBottom: "10px" }} onClick={() => setOpenProductModal(true)}>
+                            ADICIONAR PRODUTO
+                        </Button>
 
-                    {newSale.products.length > 0 ? (
-                        newSale.products.map((product: any, index: any) => (
-                            <Box key={index} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3, marginTop: 3 }}>
-                                <Typography>
-                                    {product.name} - R$ {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} - QTD: {product.quantity}
-                                </Typography>
-                                <IconButton
-                                    color="error"
-                                    onClick={() => {
-                                        const updatedProducts = newSale.products.filter((_: any, i: any) => i !== index);
-                                        setNewSale({ ...newSale, products: updatedProducts });
-                                    }}
-                                >
-                                    <DeleteCircleOutline />
-                                </IconButton>
-                            </Box>
-                        ))
-                    ) : (
-                        <Typography sx={{ marginTop: 3, marginBottom: 3 }}>NENHUM PRODUTO ADICIONADO</Typography>
-                    )}
+                        {newSale.products.length > 0 ? (
+                            newSale.products.map((product: any, index: any) => (
+                                <Box key={index} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3, marginTop: 3 }}>
+                                    <Typography>
+                                        {product.name} - R$ {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} - QTD: {product.quantity || 1}
+                                    </Typography>
+                                    <IconButton color="error" onClick={() => {
+                                        setNewSale((prevSale: any) => ({
+                                            ...prevSale,
+                                            products: prevSale.products.filter((_: any, i: number) => i !== index),
+                                        }));
+                                    }}>
+                                        <DeleteCircleOutline />
+                                    </IconButton>
+                                </Box>
+                            ))
+                        ) : (
+                            <Typography>SEM PRODUTOS SELECIONADOS</Typography>
+                        )}
 
                         <ProductSelectionModal
                             open={openProductModal}
@@ -521,19 +514,16 @@ const TableViewSales = () => {
                     <Divider />
                     <TextField
                         type="number"
-                        label="DESCONTO"
+                        label="DESCONTO (R$)"
                         value={newSale.discount}
-                        onChange={(e) => setNewSale({ ...newSale, discount: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => setNewSale({ ...newSale, discount: parseFloat(e.target.value) })}
                         fullWidth
                         margin="normal"
+                        inputProps={{ min: 0 }}
                     />
-                    <Typography variant="h6" sx={{ marginTop: 6, marginBottom: 5 }}>SUBTOTAL: {`${newSale.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}</Typography>
-                    <Divider />
-                    <Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }} onClick={() => handleSubmitNewSale()}>
+                    <Typography variant="h6">SUBTOTAL: R$ {newSale.subtotal.toFixed(2)}</Typography>
+                    <Button variant="contained" color="primary" onClick={handleSubmitNewSale}>
                         FINALIZAR VENDA
-                    </Button>
-                    <Button variant="contained" color="error" fullWidth sx={{ marginTop: 2 }} onClick={() => handleCloseNewSaleModal()}>
-                        CANCELAR
                     </Button>
                 </Box>
             </Modal>
