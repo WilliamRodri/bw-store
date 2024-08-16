@@ -17,17 +17,17 @@ const navigation = (): VerticalNavItemsType => {
     {
       title: 'VENDAS',
       icon: ShoppingBagIcon,
-      path: '/sales'
+      path: '/vendas'
     },
     {
       title: 'PRODUTOS',
       icon: ShoppingCartIcon,
-      path: '/material'
+      path: '/produtos'
     },
     {
       title: 'CLIENTES',
       icon: AccountCircle,
-      path: '/usuarios'
+      path: '/clientes'
     },
     {
       title: 'DESCONECTAR',

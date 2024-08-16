@@ -1,455 +1,599 @@
-import { useState, ChangeEvent, Fragment, useEffect } from 'react';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableRow from '@mui/material/TableRow';
-import TableHead from '@mui/material/TableHead';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import IconButton from '@mui/material/IconButton';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TablePagination from '@mui/material/TablePagination';
-import { DeleteEmpty, SquareEditOutline, Check, Plus, Close } from 'mdi-material-ui';
-import { Typography } from '@mui/material';
-
-interface Column {
-  id: 'mater_prima_aviamentos' | 'un_medida' | 'frete_fob' | 'preco_unit_c_frete' | 'fornecedor' | 'actions';
-  label: string;
-  minWidth?: number;
-  align?: 'right';
-  format?: (value: number) => string;
-}
-
-const columns: readonly Column[] = [
-  { id: 'mater_prima_aviamentos', label: 'Nome', minWidth: 170 },
-  { id: 'un_medida', align: 'right', label: 'Unidade de Medida', minWidth: 100 },
-  {
-    id: 'frete_fob',
-    label: 'Imposto ICMS',
-    minWidth: 170,
-    align: 'right',
-  },
-  {
-    id: 'preco_unit_c_frete',
-    label: 'Preço Unitário',
-    minWidth: 170,
-    align: 'right',
-    format: (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-  },
-  { id: 'fornecedor', label: 'Fornecedor', minWidth: 170, align: 'right' },
-  { id: 'actions', label: 'Ações', minWidth: 170, align: 'right' },
-];
-
-interface Data {
-  _id: string;
-  id: number;
-  mater_prima_aviamentos: string;
-  un_medida: string;
-  preco_unit_s_frete: number;
-  frete_fob: number;
-  preco_unit_c_frete: number;
-  fornecedor: string;
-  [key: string]: any;
-}
-
-function createData(
-  _id: string,
-  id: number,
-  mater_prima_aviamentos: string,
-  un_medida: string,
-  preco_unit_s_frete: number,
-  frete_fob: number,
-  preco_unit_c_frete: number,
-  fornecedor: string
-): Data {
-  return { _id, id, mater_prima_aviamentos, un_medida, preco_unit_s_frete, frete_fob, preco_unit_c_frete, fornecedor };
-}
+import { Box, Button, CircularProgress, Divider, FormControl, InputLabel, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, IconButton } from "@mui/material";
+import { DeleteEmpty, Eye, Pencil, Plus } from "mdi-material-ui";
+import { Fragment, useEffect, useState } from "react";
 
 const TableStickyHeader = () => {
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [rows, setRows] = useState<Data[]>([]);
-  const [editingRowIndex, setEditingRowIndex] = useState<number | null>(null);
-  const [editingRow, setEditingRow] = useState<Data | null>(null);
-  const [statusCreate, setStatusCreate] = useState<boolean>(false);
-  const [textSnackBarAlert, setTextSnackBarAlert] = useState<string>('');
-  const [errors, setErrors] = useState<{ mater_prima_aviamentos?: boolean; un_medida?: boolean }>({});
-  const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState<boolean>(false);
-  const [deleteRowIndex, setDeleteRowIndex] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [openConfirmModalDelete, setOpenConfirmModalDelete] = useState<boolean>(false);
+  const [productToDelete, setProductToDelete] = useState<number | null>(null);
+  const [openAddProductModal, setOpenAddProductModal] = useState<boolean>(false);
+  const [openEditProductModal, setOpenEditProductModal] = useState<boolean>(false);
+  const [openEyeProductModal, setOpenEyeProductModal] = useState<boolean>(false);
+
+  const [productToEdit, setProductToEdit] = useState<any>({
+    name: '',
+    description: '',
+    category_id: '',
+    price: '',
+    cost: '',
+    stock: ''
+  });
+
+  const [productToAdd, setProductToAdd] = useState<any>({
+    name: '',
+    description: '',
+    category_id: '',
+    price: '',
+    cost: '',
+    stock: ''
+  });
+
+  const [productToEye, setProductToEye] = useState<any>({
+    name: '',
+    description: '',
+    category_id: '',
+    price: '',
+    cost: '',
+    stock: ''
+  });
+
+  const colunasTabelaProdutos = [
+    { id: 'id', label: '#', minWidth: 66, align: 'left' as const },
+    { id: 'name', label: 'NOME', minWidth: 100, align: 'left' as const },
+    { id: 'price', label: 'PREÇO', minWidth: 150, align: 'left' as const },
+    { id: 'cost', label: 'CUSTO', minWidth: 150, align: 'left' as const },
+    { id: 'stock', label: 'ESTOQUE', minWidth: 150, align: 'left' as const },
+    { id: 'actions', label: 'AÇÕES', minWidth: 170, align: 'right' as const },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/material');
-        const dataJson = await response.json();
+        setLoading(true);
+        const response = await fetch(`/api/produtos`);
+        const responseCategories = await fetch(`/api/categorias`);
 
-        const formattedData = dataJson.map((item: any) =>
-          createData(
-            item._id,
-            item.id,
-            item.mater_prima_aviamentos,
-            item.un_medida,
-            item.preco_unit_s_frete,
-            item.frete_fob,
-            item.preco_unit_c_frete,
-            item.fornecedor
-          )
-        );
+        const data = await response.json();
+        const dataCategorias = await responseCategories.json();
 
-        setRows(formattedData);
+        setProducts(data.products);
+        setCategories(dataCategorias.categories);
       } catch (error) {
-        console.error('Error fetching data', error);
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
-    };
+    }
 
     fetchData();
   }, []);
 
-  const handleEdit = (index: number) => {
-    setStatusCreate(false);
-    setEditingRowIndex(index);
-    setEditingRow(rows[index]);
-  };
-
-  const handleSave = async () => {
-    if (editingRowIndex !== null && editingRow) {
-      let { mater_prima_aviamentos, un_medida, preco_unit_s_frete, frete_fob, preco_unit_c_frete } = editingRow;
-
-      // Validate required fields
-      const newErrors: { mater_prima_aviamentos?: boolean; un_medida?: boolean } = {};
-      if (!mater_prima_aviamentos) newErrors.mater_prima_aviamentos = true;
-      if (!un_medida) newErrors.un_medida = true;
-      setErrors(newErrors);
-
-      // If there are no errors, proceed to save
-      if (Object.keys(newErrors).length === 0) {
-        const updatedRows = [...rows];
-        if (frete_fob > 0) {
-          const calc = (preco_unit_c_frete * frete_fob) / 100;
-          preco_unit_c_frete += calc;
-        }
-        updatedRows[editingRowIndex] = {
-          ...editingRow,
-          preco_unit_s_frete: 0,
-          frete_fob: frete_fob || 0,
-          preco_unit_c_frete: preco_unit_c_frete || 0,
-        };
-        setRows(updatedRows);
-        setEditingRowIndex(null);
-        setEditingRow(null);
-      }
-    }
-
-    if (statusCreate) {
-      try {
-        if (!editingRow) {
-          throw new Error('Invalid row data');
-        }
-  
-        const response = await fetch('/api/add/material', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(editingRow),
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to add material');
-        }
-        
-        setTextSnackBarAlert('Material adicionado com sucesso!');
-        setSnackbarOpen(true);
-      } catch (error) {
-        console.error('Error adding material: ', error);
-      }
-    } else {
-      try {
-        if (!editingRow) {
-          throw new Error('Invalid row data');
-        }
-  
-        const response = await fetch('/api/update/material', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(editingRow),
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to update material');
-        }
-
-        setTextSnackBarAlert('Material atualizado com sucesso!');
-        setSnackbarOpen(true);
-      } catch (error) {
-        console.error('Error update material: ', error);
-      }
-    }
-  };
-
-  const handleCancelCreate = () => {
-    setStatusCreate(false);
-    const updatedRows = [...rows];
-    updatedRows.shift();
-    setEditingRowIndex(null);
-    setRows(updatedRows);
-  }
-
-  const handleDelete = (index: number) => {
-    setDeleteRowIndex(index);
-    setConfirmDeleteOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (deleteRowIndex !== null) {
-      try {
-        const id = rows[deleteRowIndex]._id;
-  
-        const response = await fetch(`/api/delete/material/${id}`, {
-          method: 'DELETE',
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to delete material');
-        }
-  
-        const updatedRows = [...rows];
-        updatedRows.splice(deleteRowIndex, 1);
-        setRows(updatedRows);
-        setTextSnackBarAlert('Material deletado com sucesso!');
-        setSnackbarOpen(true);
-      } catch (error) {
-        console.error('Error deleting material: ', error);
-      } finally {
-        setConfirmDeleteOpen(false);
-        setDeleteRowIndex(null);
-      }
-    }
-  };  
-
-  const handleInputChange = (event: any) => {
-    if (editingRow) {
-      const { name, value } = event.target;
-      const updatedRow = { ...editingRow, [name as string]: value };
-
-      // Ensure numeric fields are validated
-      if (['preco_unit_s_frete', 'frete_fob', 'preco_unit_c_frete'].includes(name as string)) {
-        const numericValue = parseFloat(value as string);
-        if (!isNaN(numericValue)) {
-          setEditingRow({ ...updatedRow, [name as string]: numericValue });
-        }
-
-        // Calcula o imposto e atualiza o preço unitário com imposto
-        if (name === 'frete_fob' && numericValue > 0) {
-          const precoUnitario = editingRow.preco_unit_s_frete;
-          const imposto = (numericValue * precoUnitario) / 100;
-          const precoUnitarioComImposto = precoUnitario + imposto;
-          setEditingRow({ ...updatedRow, preco_unit_c_frete: precoUnitarioComImposto });
-        }
-
-      } else {
-        setEditingRow(updatedRow);
-      }
-    }
-  };
-
-  const handleAddRow = () => {
-    setStatusCreate(true);
-    const newRow = createData('', 0, '', '', 0, 0, 0, '');
-    setRows([newRow, ...rows]);
-    setEditingRowIndex(0);
-    setEditingRow(newRow);
-  };  
-
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-  };
-
-  const handleCloseDeleteModal = () => {
-    setConfirmDeleteOpen(false);
-    setDeleteRowIndex(null);
-  };
-
-  // Função para filtrar os resultados com base no termo de pesquisa
-  const filteredRows = searchTerm.trim() === '' ? rows : rows.filter(row =>
-    row.mater_prima_aviamentos.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Funções para manuseio de paginação
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(+event.target.value);
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+  const filteredRows = products.filter(product =>
+    product.id.toString().includes(searchTerm.toLowerCase()) ||
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleOpenAddProductModal = () => {
+    setOpenAddProductModal(true);
+  }
+
+  const handleCloseAddProductModal = () => {
+    setOpenAddProductModal(false);
+  }
+
+  const handleCloseEyeProductModal = () => {
+    setOpenEyeProductModal(false);
+  }
+
+  const handleOpenConfirmModalDelete = (id: number) => {
+    setOpenConfirmModalDelete(true);
+    setProductToDelete(id);
+  }
+
+  const handleCloseConfirmModalDelete = () => {
+    setOpenConfirmModalDelete(false);
+    setProductToDelete(null);
+  };
+
+  const handleOpenConfirmModalEdit = (product: any) => {
+    setOpenEditProductModal(true);
+    setProductToEdit(product);
+  }
+
+  const handleOpenEyeModal = (product: any) => {
+    setOpenEyeProductModal(true);
+    setProductToEye(product);
+  }
+
+  const handleCloseConfirmModalEdit = () => {
+    setOpenEditProductModal(false);
+    setProductToEdit({
+      name: '',
+      description: '',
+      category_id: '',
+      price: '',
+      cost: '',
+      stock: ''
+    });
+  }
+
+  const handleDeleteProduct = async () => {
+    if (productToDelete === null) return;
+
+    try {
+      const response = await fetch(`/api/delete/produtos/${productToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        setProducts(products.filter(product => product.id !== productToDelete));
+      } else {
+        console.error('Failed to delete the product');
+      }
+    } catch (error) {
+      console.error('Error deleting the sale:', error);
+    } finally {
+      handleCloseConfirmModalDelete();
+    }
+  };
+
+  const handleSaveEditProduct = async () => {
+    const data = {
+      name: productToEdit?.name,
+      description: productToEdit?.description,
+      category_id: productToEdit?.category_id,
+      price: productToEdit?.price,
+      cost: productToEdit?.cost,
+      stock: productToEdit?.stock
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/update/produtos/${productToEdit?.id}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        setProducts(products.filter(product => product.id !== productToDelete));
+        location.reload();
+      } else {
+        console.error('Failed to update the product');
+      }
+      
+    } catch (error) {
+      console.error('Error update data:', error);
+    } finally {
+      setLoading(false);
+      setOpenEditProductModal(false);
+      setProductToEdit({
+        name: '',
+        description: '',
+        category_id: '',
+        price: '',
+        cost: '',
+        stock: ''
+      });
+    }
+  }
+
+  const [errors, setErrors] = useState({
+    name: false,
+    category_id: false,
+    price: false,
+    cost: false,
+    stock: false
+  });
+
+  const validateFields = () => {
+    const newErrors = {
+      name: productToAdd.name === "",
+      category_id: productToAdd.category_id === 0 || productToAdd.category_id === "",
+      price: productToAdd.price === "",
+      cost: productToAdd.cost === "",
+      stock: productToAdd.stock === "" || productToAdd.stock < 0
+    }
+
+    setErrors(newErrors);
+    
+    // Retorna true se todos os campos forem válidos (sem erros)
+    return !Object.values(newErrors).includes(true);
+  }
+
+  const handleSaveAddProduct = async () => {
+    if (validateFields()) {
+      const data = await productToAdd;
+      
+      const combinedData = {
+        name: data.name,
+        description: data.description,
+        category_id: data.category_id,
+        price: parseFloat(data.price),
+        stock: data.stock,
+        cost: parseFloat(data.cost),
+        status: 'visible'
+      };
+      
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/products/insertProduct/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(combinedData),
+        });
+
+        if (!response.ok) {
+            console.error('Failed to generate the product');
+            alert('Erro ao cadastrar o Produto, Por favor, Tente Novamente.');
+        } else {
+          location.reload();
+        }
+
+      } catch (error) {
+        console.error('Error add data:', error);
+        alert('Erro ao cadastrar o produto, Por favor tente novamente.');
+      } finally {
+          setOpenAddProductModal(false);
+          setLoading(false);
+      }
+      
+    } else {
+      alert("Por favor, preencha todos os campos obrigatórios.");
+    }
+  }
 
   return (
     <Fragment>
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TextField
-          label="Pesquisar Material"
+          label="PESQUISAR VENDA"
           variant="outlined"
           fullWidth
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{ margin: '10px 20px' }}
         />
-        <Button variant="contained" startIcon={<Plus />} onClick={handleAddRow} style={{ margin: '10px 20px' }}>
-          Adicionar Material
+        <Button variant="contained" startIcon={<Plus />} style={{ margin: '10px 20px' }} onClick={() => handleOpenAddProductModal()}>
+          CADASTRAR NOVO PRODUTO
         </Button>
-        <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="sticky table">
-            <TableHead>
-              <TableRow>
-                {columns.map(column => (
-                  <TableCell key={column.id} align={column.align} sx={{ minWidth: column.minWidth }}>
-                    {column.label}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.length === 0 ? (
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+            <CircularProgress />
+          </div>
+        ) : (
+          <TableContainer sx={{ maxHeight: 440 }}>
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={11}>
-                    <Typography variant="body2" sx={{ marginTop: 2 }}>
-                      <strong>Ainda sem nenhum material cadastrado!</strong>
-                    </Typography>
-                  </TableCell>
+                  {colunasTabelaProdutos.map((column) => (
+                    <TableCell key={column.id} align={column.align} sx={{ minWidth: column.minWidth }}>
+                      {column.label}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ) : (
-                filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => {
-                  const isEditing = index === editingRowIndex;
-                  return (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={index}>
-                      {columns.map(column => {
-                        const value = row[column.id];
+              </TableHead>
+              <TableBody>
+                {products.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={colunasTabelaProdutos.length}>
+                      <Typography variant="body2" sx={{ marginTop: 2 }}>
+                        <strong>AINDA NÃO FOI REALIZADA NENHUMA VENDA!</strong>
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product, rowIndex) => (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={rowIndex}>
+                      {colunasTabelaProdutos.map((column) => {
+                        const value = product[column.id];
                         return (
                           <TableCell key={column.id} align={column.align}>
-                            {column.id === 'actions' ? (
-                              isEditing ? (
-                                <Fragment>
-                                  <IconButton onClick={handleSave}>
-                                    <Check />
-                                  </IconButton>
-                                  <IconButton onClick={handleCancelCreate}>
-                                    <Close />
-                                  </IconButton>
-                                </Fragment>
-                              ) : (
-                                <Fragment>
-                                  <IconButton onClick={() => handleEdit(index)}>
-                                    <SquareEditOutline />
-                                  </IconButton>
-                                  <IconButton onClick={() => handleDelete(index)}>
-                                    <DeleteEmpty />
-                                  </IconButton>
-                                </Fragment>
-                              )
-                            ) : isEditing ? (
-                              column.id === 'un_medida' ? (
-                                <Select
-                                  name={column.id}
-                                  value={editingRow ? editingRow[column.id] : ''}
-                                  onChange={handleInputChange}
-                                  fullWidth
-                                  error={errors.un_medida}
-                                >
-                                  <MenuItem value="kg">KG</MenuItem>
-                                  <MenuItem value="und">UND</MenuItem>
-                                  <MenuItem value="mt">MT</MenuItem>
-                                </Select>
-                              ) : (
-                                <TextField
-                                  name={column.id}
-                                  value={editingRow ? (editingRow[column.id] as string) : ''}
-                                  onChange={handleInputChange}
-                                  fullWidth
-                                  error={column.id === 'mater_prima_aviamentos' && errors.mater_prima_aviamentos}
-                                  InputProps={
-                                    ['frete_fob', 'preco_unit_c_frete'].includes(column.id) ? { inputProps: { min: 0, step: 0.01 } } : {}
-                                  }
-                                  type={['frete_fob', 'preco_unit_c_frete'].includes(column.id) ? 'number' : 'text'}
-                                />
-                              )
-                            ) : column.format && typeof value === 'number' ? (
-                              column.format(value)
-                            ) : (
-                              value
-                            )}
+                            {
+                              column.id === 'id' ? (
+                                `#${value}`
+                              ) : column.id === 'name' ? (value) :
+                                column.id === 'price' ? (`${parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`) :
+                                  column.id === 'cost' ? (`${parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`) :
+                                    column.id === 'stock' ? (value) :
+                                      column.id === 'actions' ? (
+                                        <Fragment>
+                                          <IconButton onClick={() => handleOpenEyeModal(product)}>
+                                            <Eye />
+                                          </IconButton>
+                                          <IconButton onClick={() => handleOpenConfirmModalEdit(product)}>
+                                            <Pencil />
+                                          </IconButton>
+                                          <IconButton onClick={() => handleOpenConfirmModalDelete(product.id)}>
+                                            <DeleteEmpty />
+                                          </IconButton>
+                                        </Fragment>
+                                      ) : value}
                           </TableCell>
-                        );
+                        )
                       })}
                     </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 50]}
-          component="div"
-          count={filteredRows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="Linhas por página"
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
-          getItemAriaLabel={(type) => {
-            if (type === 'first') {
-              return 'Primeira página';
-            }
-            if (type === 'previous') {
-              return 'Página anterior';
-            }
-            if (type === 'next') {
-              return 'Próxima página';
-            }
-            if (type === 'last') {
-              return 'Última página';
-            }
-            return '';
-          }}
-        />
+                  ))
+                )}
+              </TableBody>
+            </Table>
+            <TablePagination
+              rowsPerPageOptions={[10, 25, 50]}
+              component="div"
+              count={filteredRows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              labelRowsPerPage="Linhas por página"
+              labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
+              getItemAriaLabel={(type) => {
+                if (type === 'first') {
+                  return 'Primeira página';
+                }
+                if (type === 'previous') {
+                  return 'Página anterior';
+                }
+                if (type === 'next') {
+                  return 'Próxima página';
+                }
+                if (type === 'last') {
+                  return 'Última página';
+                }
+                return '';
+              }}
+            />
+          </TableContainer>
+        )}
       </Paper>
-      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleCloseSnackbar}>
-        <Alert severity="success" onClose={handleCloseSnackbar}>
-          {textSnackBarAlert}
-        </Alert>
-      </Snackbar>
-      <Dialog open={confirmDeleteOpen} onClose={handleCloseDeleteModal}>
-        <DialogTitle>Confirmação de Ação</DialogTitle>
-        <DialogContent>
-          Tem certeza que deseja excluir este material?
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteModal} color="primary">
-            Cancelar
-          </Button>
-          <Button onClick={confirmDelete} color="primary" variant="contained">
-            Confirmar
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+    {/* MODAL DE VISUALIZAÇÃO DE CONFIRMAÇÃO DE DELETAR PRODUTO */}
+      <Modal
+        open={openConfirmModalDelete}
+        onClose={handleCloseConfirmModalDelete}
+        aria-labelledby="confirm-modal-title"
+        aria-describedby="confirm-modal-description"
+      >
+        <Box sx={{ width: 400, bgcolor: 'background.paper', padding: 4, margin: 'auto', marginTop: '20%', borderRadius: 1 }}>
+          <Typography id="confirm-modal-title" variant="h6" component="h2">
+            CONFIRMA EXCLUSÃO
+          </Typography>
+          <Divider sx={{ marginY: 2 }} />
+          <Typography id="confirm-modal-description" sx={{ mt: 2 }}>
+            Você tem certeza que deseja excluir este produto?
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+            <Button variant="contained" color="error" onClick={handleDeleteProduct}>
+              EXCLUIR
+            </Button>
+            <Button onClick={handleCloseConfirmModalDelete} sx={{ marginLeft: 2 }}>
+              CANCELAR
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+        {/* MODAL PARA EDITAR PRODUTO */}
+      <Modal
+        open={openEditProductModal}
+        onClose={handleCloseConfirmModalEdit}
+        aria-labelledby="edit-modal-title"
+        aria-describedby="edit-modal-description"
+      >
+        <Box sx={{
+            width: 400,
+            bgcolor: 'background.paper',
+            padding: 4,
+            margin: 'auto',
+            marginTop: '5%',
+            borderRadius: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}>
+          <Typography id="edit-modal-title" variant="h6" component="h2">
+            EDITANDO PRODUTO
+          </Typography>
+          <Divider />
+          <TextField
+            label="NOME"
+            value={productToEdit.name}
+            onChange={(e) => setProductToEdit({ ...productToEdit, name: e.target.value })}
+          />
+          <TextField
+            label="DESCRIÇÃO"
+            value={productToEdit.description}
+            onChange={(e) => setProductToEdit({ ...productToEdit, description: e.target.value })}
+          />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>CATEGORIA</InputLabel>
+            <Select
+              value={productToEdit.category_id}
+              onChange={(e) => setProductToEdit({ ...productToEdit, category_id: e.target.value})}
+            >
+              {categories.map(category => (
+                <MenuItem key={category.id} value={category.id}>{category.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="PREÇO"
+            type="number"
+            value={productToEdit.price}
+            onChange={(e) => setProductToEdit({ ...productToEdit, price: e.target.value })}
+          />
+          <TextField
+            label="CUSTO"
+            type="number"
+            value={productToEdit.cost}
+            onChange={(e) => setProductToEdit({ ...productToEdit, cost: e.target.value })}
+          />
+          <TextField
+            label="ESTOQUE"
+            type="number"
+            value={productToEdit.stock}
+            onChange={(e) => setProductToEdit({ ...productToEdit, stock: e.target.value })}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+            <Button variant="contained" onClick={handleSaveEditProduct}>
+              SALVAR ALTERAÇÕES
+            </Button>
+            <Button onClick={handleCloseConfirmModalEdit} sx={{ marginLeft: 2 }}>
+              CANCELAR
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+        {/* MODAL PARA CADASTRAR PRODUTO */}
+      <Modal
+        open={openAddProductModal}
+        onClose={handleCloseAddProductModal}
+        aria-labelledby="edit-modal-title"
+        aria-describedby="edit-modal-description"
+      >
+        <Box sx={{
+          width: 400,
+          bgcolor: 'background.paper',
+          padding: 4,
+          margin: 'auto',
+          marginTop: '5%',
+          borderRadius: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}>
+          <Typography id="edit-modal-title" variant="h6" component="h2">
+            CADASTRANDO NOVO PRODUTO
+          </Typography>
+          <Divider />
+          <TextField
+            label="NOME"
+            required
+            onChange={(e) => setProductToAdd({ ...productToAdd, name: e.target.value })}
+          />
+          <TextField
+            label="DESCRIÇÃO"
+            onChange={(e) => setProductToAdd({ ...productToAdd, description: e.target.value })}
+          />
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel>CATEGORIA</InputLabel>
+            <Select
+              onChange={(e) => setProductToAdd({ ...productToAdd, category_id: e.target.value })}
+            >
+              {categories.map(category => (
+                <MenuItem key={category.id} value={category.id}>{category.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="PREÇO"
+            type="number"
+            required
+            onChange={(e) => setProductToAdd({ ...productToAdd, price: e.target.value })}
+          />
+          <TextField
+            label="CUSTO"
+            type="number"
+            required
+            onChange={(e) => setProductToAdd({ ...productToAdd, cost: e.target.value })}
+          />
+          <TextField
+            label="ESTOQUE"
+            type="number"
+            onChange={(e) => setProductToAdd({ ...productToAdd, stock: e.target.value })}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+            <Button 
+              variant="contained" 
+              onClick={handleSaveAddProduct}
+            >
+              CADASTRAR
+            </Button>
+            <Button onClick={handleCloseAddProductModal} sx={{ marginLeft: 2 }}>
+              CANCELAR
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+        {/* MODAL PARA VISUALIZAR DETALHES DE PRODUTO */}
+      <Modal
+        open={openEyeProductModal}
+        onClose={handleCloseEyeProductModal}
+        aria-labelledby="edit-modal-title"
+        aria-describedby="edit-modal-description"
+      >
+        <Box sx={{
+          width: 400,
+          bgcolor: 'background.paper',
+          padding: 4,
+          margin: 'auto',
+          marginTop: '5%',
+          borderRadius: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}>
+          <Typography id="edit-modal-title" variant="h6" component="h2">
+            VISUALIZANDO PRODUTO
+          </Typography>
+          <Divider />
+          <TextField
+            label="NOME"
+            value={productToEye?.name}
+          />
+          <TextField
+            label="DESCRIÇÃO"
+            value={productToEye?.description}
+          />
+          <TextField
+            label="CATEGORIA"
+            value={
+              categories.find((category) => category.id === productToEye.category_id)?.name || ""
+            }
+          />
+          <TextField
+            label="PREÇO"
+            value={productToEye?.price}
+          />
+          <TextField
+            label="CUSTO"
+            value={productToEye?.cost}
+          />
+          <TextField
+            label="ESTOQUE"
+            value={productToEye?.stock}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+            <Button onClick={handleCloseEyeProductModal} sx={{ marginLeft: 2 }}>
+              FECHAR
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
     </Fragment>
   );
-};
+}
 
 export default TableStickyHeader;

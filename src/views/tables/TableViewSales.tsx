@@ -1,5 +1,5 @@
 import { Button, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, TablePagination, CircularProgress, Modal, Box, Checkbox, Divider } from "@mui/material";
-import { DeleteCircleOutline, DeleteEmpty, EyeArrowRight, Plus, Printer } from "mdi-material-ui";
+import { DeleteCircleOutline, DeleteEmpty, Eye, Plus, Printer } from "mdi-material-ui";
 import { useRouter } from "next/router";
 import { Fragment, useEffect, useState } from "react";
 import ProductSelectionModal from "./ProductSelectionModal";
@@ -86,7 +86,6 @@ const TableViewSales = () => {
 
             try {
                 setLoading(true);
-                console.log(combinedData);
                 const response = await fetch(`/api/sales/insertSale/`, {
                     method: 'POST',
                     headers: {
@@ -251,7 +250,7 @@ const TableViewSales = () => {
     };
 
     const print = (id: any) => {
-        router.push(`/sales/print/${id}`);
+        router.push(`/vendas/print/${id}`);
     }
 
     return (
@@ -309,7 +308,7 @@ const TableViewSales = () => {
                                                         ) : column.id === 'actions' ? (
                                                             <Fragment>
                                                                 <IconButton onClick={() => handleOpenModal(sale)}>
-                                                                    <EyeArrowRight />
+                                                                    <Eye />
                                                                 </IconButton>
                                                                 <IconButton onClick={() => print(sale.id)}>
                                                                     <Printer />
@@ -335,6 +334,23 @@ const TableViewSales = () => {
                             page={page}
                             onPageChange={handleChangePage}
                             onRowsPerPageChange={handleChangeRowsPerPage}
+                            labelRowsPerPage="Linhas por página"
+                            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
+                            getItemAriaLabel={(type) => {
+                              if (type === 'first') {
+                                return 'Primeira página';
+                              }
+                              if (type === 'previous') {
+                                return 'Página anterior';
+                              }
+                              if (type === 'next') {
+                                return 'Próxima página';
+                              }
+                              if (type === 'last') {
+                                return 'Última página';
+                              }
+                              return '';
+                            }}
                         />
                     </TableContainer>
                 )}
