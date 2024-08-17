@@ -9,7 +9,7 @@ const Dashboard = () => {
 
   const router = useRouter();
   useEffect(() => {
-    router.push('/pedido');
+    router.push('/vendas');
   }, [router]);
 
   return (

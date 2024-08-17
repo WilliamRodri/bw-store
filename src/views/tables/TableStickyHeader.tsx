@@ -14,6 +14,8 @@ const TableStickyHeader = () => {
   const [openAddProductModal, setOpenAddProductModal] = useState<boolean>(false);
   const [openEditProductModal, setOpenEditProductModal] = useState<boolean>(false);
   const [openEyeProductModal, setOpenEyeProductModal] = useState<boolean>(false);
+  const [openCategoriesModal, setOpenCategoriesModal] = useState<boolean>(false);
+  const [openAddCategory, setOpenAddCategory] = useState<boolean>(false);
 
   const [productToEdit, setProductToEdit] = useState<any>({
     name: '',
@@ -40,6 +42,10 @@ const TableStickyHeader = () => {
     price: '',
     cost: '',
     stock: ''
+  });
+
+  const [categoryToAdd, setCategoryToAdd] = useState<any>({
+    name: ""
   });
 
   const colunasTabelaProdutos = [
@@ -91,8 +97,24 @@ const TableStickyHeader = () => {
     setOpenAddProductModal(true);
   }
 
+  const handleOpenEyeCategoriesModal = () => {
+    setOpenCategoriesModal(true);
+  }
+
+  const handleCloseEyeCategoriesModal = () => {
+    setOpenCategoriesModal(false);
+  }
+
+  const handleOpenAddCategoryModal = () => {
+    setOpenAddCategory(true);
+  }
+
   const handleCloseAddProductModal = () => {
     setOpenAddProductModal(false);
+  }
+
+  const handleCloseAddCategory = () => {
+    setOpenAddCategory(false);
   }
 
   const handleCloseEyeProductModal = () => {
@@ -205,6 +227,10 @@ const TableStickyHeader = () => {
     stock: false
   });
 
+  const [errorsCategory, setErrorsCategory] = useState({
+    name: false
+  });
+
   const validateFields = () => {
     const newErrors = {
       name: productToAdd.name === "",
@@ -217,6 +243,16 @@ const TableStickyHeader = () => {
     setErrors(newErrors);
     
     // Retorna true se todos os campos forem válidos (sem erros)
+    return !Object.values(newErrors).includes(true);
+  }
+
+  const validateFieldsCategory = () => {
+    const newErrors = {
+      name: categoryToAdd.name === ""
+    }
+
+    setErrorsCategory(newErrors);
+
     return !Object.values(newErrors).includes(true);
   }
 
@@ -258,9 +294,69 @@ const TableStickyHeader = () => {
           setOpenAddProductModal(false);
           setLoading(false);
       }
-      
     } else {
       alert("Por favor, preencha todos os campos obrigatórios.");
+    }
+  }
+
+  const handleSaveAddCategory = async () => {
+    if (validateFieldsCategory()) {
+      try {
+        const data = await categoryToAdd;
+  
+        setLoading(true);
+  
+        const combinedData = {
+          name: data.name,
+          description: ""
+        };
+  
+        const response = await fetch(`/api/categorias/insertCategoria/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(combinedData),
+        });
+  
+        if (!response.ok) {
+          console.error('Failed to generate the category', response.statusText);
+          alert('Erro ao cadastrar a Categoria, Por favor, Tente Novamente.');
+          return;
+        } else {
+          location.reload();
+        }
+  
+      } catch (error) {
+        console.error('Error adding category:', error);
+        alert('Erro ao cadastrar a categoria, Por favor tente novamente.');
+      } finally {
+        setOpenAddCategory(false);
+        setLoading(false);
+      }
+    } else {
+      alert("Por favor, preencha todos os campos obrigatórios.");
+    }
+  };  
+
+  const deleteCategory = async (id: any) => {
+    if (id === null) return;
+
+    try {
+      const response = await fetch(`/api/delete/categorias/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        setCategories(categories.filter(category => category.id !== id));
+      } else {
+        console.error('Failed to delete the category');
+      }
+    } catch (error) {
+      console.error('Error deleting the category:', error);
     }
   }
 
@@ -277,6 +373,9 @@ const TableStickyHeader = () => {
         />
         <Button variant="contained" startIcon={<Plus />} style={{ margin: '10px 20px' }} onClick={() => handleOpenAddProductModal()}>
           CADASTRAR NOVO PRODUTO
+        </Button>
+        <Button variant="contained" startIcon={<Eye />} style={{ margin: '10px 20px' }} onClick={() => handleOpenEyeCategoriesModal()}>
+          VISUALIZAR CATEGORIAS
         </Button>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
@@ -502,7 +601,7 @@ const TableStickyHeader = () => {
               onChange={(e) => setProductToAdd({ ...productToAdd, category_id: e.target.value })}
             >
               {categories.map(category => (
-                <MenuItem key={category.id} value={category.id}>{category.name}</MenuItem>
+                <MenuItem style={{ overflowY: "auto" }} key={category.id} value={category.id}>{category.name}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -588,6 +687,123 @@ const TableStickyHeader = () => {
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
             <Button onClick={handleCloseEyeProductModal} sx={{ marginLeft: 2 }}>
               FECHAR
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* MODAL PARA VISUALIAR CATEGORIAS E REALIZAR AÇÕES */}
+      <Modal
+        open={openCategoriesModal}
+        onClose={handleCloseEyeCategoriesModal}
+        aria-labelledby="edit-modal-title"
+        aria-describedby="edit-modal-description"
+      >
+        <Box sx={{
+          width: 400,
+          bgcolor: 'background.paper',
+          padding: 4,
+          margin: 'auto',
+          marginTop: '5%',
+          borderRadius: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}>
+          <Typography id="edit-modal-title" variant="h6" component="h2">
+            VISUALIZANDO CATEGORIAS
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => handleOpenAddCategoryModal()}
+          >
+            ADICIONAR CATEGORIA
+          </Button>
+          <Divider />
+          <Box
+            sx={{
+              maxHeight: "400px",
+              overflowY: "auto",
+              padding: "10px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
+          >
+            {categories.map((category: any) => (
+              <Box
+                key={category?.id}
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                <TextField
+                  fullWidth
+                  label="NOME"
+                  value={category?.name}
+                  sx={{
+                    flexGrow: 1, 
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => deleteCategory(category.id)}
+                >
+                  EXCLUIR CATEGORIA
+                </Button>
+              </Box>
+            ))}
+          </Box>
+          <Divider />
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+            <Button onClick={handleCloseEyeCategoriesModal} sx={{ marginLeft: 2 }}>
+              FECHAR
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* MODAL PARA CADASTRAR CATEGORIA */}
+      <Modal
+        open={openAddCategory}
+        onClose={handleCloseAddCategory}
+        aria-labelledby="edit-modal-title"
+        aria-describedby="edit-modal-description"
+      >
+        <Box sx={{
+          width: 400,
+          bgcolor: 'background.paper',
+          padding: 4,
+          margin: 'auto',
+          marginTop: '5%',
+          borderRadius: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}>
+          <Typography id="edit-modal-title" variant="h6" component="h2">
+            CADASTRANDO NOVA CATEGORIA
+          </Typography>
+          <Divider />
+          <TextField
+            label="NOME DA CATEGORIA"
+            required
+            onChange={(e) => setCategoryToAdd({ ...categoryToAdd, name: e.target.value })}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+            <Button 
+              variant="contained" 
+              onClick={handleSaveAddCategory}
+            >
+              CADASTRAR
+            </Button>
+            <Button onClick={handleCloseAddCategory} sx={{ marginLeft: 2 }}>
+              CANCELAR
             </Button>
           </Box>
         </Box>

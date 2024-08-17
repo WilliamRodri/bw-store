@@ -2,18 +2,18 @@ import type { NextApiRequest, NextApiResponse } from 'next/types';
 import { Mysql } from 'src/configs/db/mysql';
 import insertData from 'src/lib/querys/insert';
 
-export default async function insertProduct(req: NextApiRequest, res: NextApiResponse) {
+export default async function insertCliente(req: NextApiRequest, res: NextApiResponse) {
     const mysql = await Mysql();
 
     if (req.method === "POST") {
         try {
             const data = req.body;
     
-            await insertData('products', data);
+            const execute = await insertData('clients', data);
     
-            return res.status(200).json({ message: 'Success' });
+            return res.status(200).json({ message: 'Success', id: execute });
         } catch (error) {
-            console.error("Error generate product: ", error);
+            console.error("Error generate client: ", error);
             return res.status(500).json({ error: 'Internal Server Error' });
         } finally {
             await mysql.end();

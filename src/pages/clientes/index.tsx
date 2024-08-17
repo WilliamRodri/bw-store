@@ -1,18 +1,18 @@
 import { CardHeader, Card, Grid } from "@mui/material";
 import withAuth from "src/lib/withAuth";
-import TableUsuarios from "src/views/tables/TableUsuarios";
+import TableClientes from "src/views/tables/TableClientes";
 
-const Usuarios = () => {
+const Clientes = () => {
     return(
         <>
             <Grid item xs={12}>
                 <Card>
-                    <CardHeader title='Usuários' titleTypographyProps={{ variant: 'h6' }} />
-                    <TableUsuarios />
+                    <CardHeader title='LISTA DE CLIENTES' titleTypographyProps={{ variant: 'h6' }} />
+                    <TableClientes />
                 </Card>
             </Grid>
         </>
     );
 }
 
-export default withAuth(Usuarios);
+export default withAuth(Clientes);
