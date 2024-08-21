@@ -9,6 +9,18 @@ const TableClientes = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [clientes, setClientes] = useState<any>([]);
     const [sales, setSales] = useState<any>([]);
+    const [openModalDelete, setOpenModalDelete] = useState<boolean>(false);
+    const [clientToDelete, setClientToDelete] = useState<number | null>(null);
+
+    // Editar Cliente
+    const [openEditClientModal, setOpenEditClientModal] = useState<boolean>(false);
+    const [clientToEdit, setClientToEdit] = useState<any>({
+        name: '',
+        email: '',
+        phone: '',
+        cpf: '',
+        address: ''
+    });
     
     // Cadastrar cliente
     const [openAddClientModal, setOpenAddClientModal] = useState<any>(false);
@@ -32,10 +44,28 @@ const TableClientes = () => {
         name: false,
         phone: false
     });
+
     const validateFields = () => {
         const newErrors = {
             name: clienteToAdd.name === "",
             phone: clienteToAdd.phone === ""
+        }
+    
+        setErrors(newErrors);
+        
+        // Retorna true se todos os campos forem válidos (sem erros)
+        return !Object.values(newErrors).includes(true);
+    }
+
+    const [errorsEdit, setErrorsEdit] = useState({
+        name: false,
+        phone: false
+    });
+
+    const validateFieldsEdit = () => {
+        const newErrors = {
+            name: clientToEdit.name === "",
+            phone: clientToEdit.phone === ""
         }
     
         setErrors(newErrors);
@@ -145,6 +175,7 @@ const TableClientes = () => {
     
           if (response.ok) {
             setClientes(clientes.filter((cliente: any) => cliente.id !== id));
+            setOpenModalDelete(false);
           } else {
             console.error('Failed to delete the client');
           }
@@ -153,8 +184,73 @@ const TableClientes = () => {
         }
     }
 
-    const handleAddCliente = async () => {
+    const handleOpenModalDelete = (id: any) => {
+        setClientToDelete(id);
+        setOpenModalDelete(true);
+    }
 
+    const handleCloseModalDelete = () => {
+        setOpenModalDelete(false);
+    }
+
+    const handleCloseClientEditModal = () => {
+        setOpenEditClientModal(false);
+        setClientToEdit({
+            name: '',
+            email: '',
+            phone: '',
+            cpf: '',
+            address: ''
+        })
+    }
+
+    const handleOpenClientEditModal = (client: any) => {
+        setOpenEditClientModal(true);
+        setClientToEdit(client);
+    }
+
+    const handleSaveEditClient = async () => {
+        const data = {
+            name: clientToEdit.name,
+            email: clientToEdit.email,
+            phone: clientToEdit.phone,
+            cpf: clientToEdit.cpf,
+            address: clientToEdit.address
+        }
+
+        if (validateFieldsEdit()) {
+            try {
+                setLoading(true);
+                const response = await fetch(`/api/update/clientes/${clientToEdit?.id}`, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                      'Content-Type': 'application/json',
+                    }
+                  });
+            
+                  if (response.ok) {
+                    setClientes(clientes.filter((cliente: any) => cliente.id !== clientToEdit));
+                    location.reload();
+                  } else {
+                    console.error('Failed to update the client');
+                  }
+            } catch (error) {
+                console.error('Error update data:', error);
+            } finally {
+                setLoading(false);
+                setOpenEditClientModal(false);
+                setClientToEdit({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    cpf: '',
+                    address: ''
+                });
+            }
+        } else {
+            alert("Por favor, preencha todos os campos obrigatórios.");
+        }
     }
 
     return(
@@ -228,13 +324,15 @@ const TableClientes = () => {
                                                     })()
                                                 ) : column.id === 'actions' ? (
                                                     <Fragment>
-                                                        <IconButton onClick={() => {}}>
-                                                            <Pencil />
-                                                        </IconButton>
                                                         {cliente.id !== 1 && (
-                                                            <IconButton onClick={() => deleteCliente(cliente.id)}>
-                                                                <DeleteEmpty />
-                                                            </IconButton>
+                                                            <>
+                                                                <IconButton onClick={() => handleOpenClientEditModal(cliente)}>
+                                                                    <Pencil />
+                                                                </IconButton>
+                                                                <IconButton onClick={() => handleOpenModalDelete(cliente.id)}>
+                                                                    <DeleteEmpty />
+                                                                </IconButton>
+                                                            </>
                                                         )}
                                                     </Fragment>
                                                 ) : (
@@ -335,6 +433,93 @@ const TableClientes = () => {
                         CANCELAR
                     </Button>
                 </Box>
+                </Box>
+            </Modal>
+
+            {/* MODAL PARA EDITAR CLIENTE */}
+            <Modal
+                open={openEditClientModal}
+                onClose={handleCloseClientEditModal}
+                aria-labelledby="edit-modal-title"
+                aria-describedby="edit-modal-description"
+            >
+                <Box sx={{
+                    width: 400,
+                    bgcolor: 'background.paper',
+                    padding: 4,
+                    margin: 'auto',
+                    marginTop: '5%',
+                    borderRadius: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                }}>
+                <Typography id="edit-modal-title" variant="h6" component="h2">
+                    EDITANDO CLIENTE
+                </Typography>
+                <Divider />
+                <TextField
+                    label="NOME"
+                    required
+                    value={clientToEdit.name}
+                    onChange={(e) => setClientToEdit({ ...clientToEdit, name: e.target.value })}
+                />
+                <TextField
+                    label="EMAIL"
+                    value={clientToEdit.email}
+                    onChange={(e) => setClientToEdit({ ...clientToEdit, email: e.target.value })}
+                />
+                <TextField
+                    label="TELEFONE"
+                    type="number"
+                    required
+                    value={clientToEdit.phone}
+                    onChange={(e) => setClientToEdit({ ...clientToEdit, phone: e.target.value })}
+                />
+                <TextField
+                    label="CPF"
+                    type="number"
+                    value={clientToEdit.cpf}
+                    onChange={(e) => setClientToEdit({ ...clientToEdit, cpf: e.target.value })}
+                />
+                <TextField
+                    label="ENDEREÇO"
+                    value={clientToEdit.address}
+                    onChange={(e) => setClientToEdit({ ...clientToEdit, address: e.target.value })}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                    <Button variant="contained" onClick={handleSaveEditClient}>
+                        SALVAR ALTERAÇÕES
+                    </Button>
+                    <Button onClick={handleCloseClientEditModal} sx={{ marginLeft: 2 }}>
+                        CANCELAR
+                    </Button>
+                </Box>
+                </Box>
+            </Modal>
+
+            {/* MODAL PARA CONFIRMA EXCLUSÃO */}
+            <Modal
+                open={openModalDelete}
+                onClose={handleCloseModalDelete}
+                aria-labelledby="confirm-modal-title"
+                aria-describedby="confirm-modal-description"
+            >
+                <Box sx={{ width: 400, bgcolor: 'background.paper', padding: 4, margin: 'auto', marginTop: '20%', borderRadius: 1 }}>
+                    <Typography id="confirm-modal-title" variant="h6" component="h2">
+                        Confirmar Exclusão
+                    </Typography>
+                    <Typography variant="body1" sx={{ marginTop: 2 }}>
+                        Tem certeza de que deseja excluir o cliente?
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
+                        <Button onClick={handleCloseModalDelete} sx={{ marginRight: 1 }}>
+                            Cancelar
+                        </Button>
+                        <Button variant="contained" color="error" onClick={() => deleteCliente(clientToDelete)}>
+                            Excluir
+                        </Button>
+                    </Box>
                 </Box>
             </Modal>
         </Fragment>

@@ -145,7 +145,7 @@ const TableViewSales = () => {
             try {
                 setLoading(true);
                 const response = await fetch(`/api/vendas`);
-                const responseClients = await fetch(`/api/usuarios`);
+                const responseClients = await fetch(`/api/clientes`);
                 
                 const data = await response.json();
                 const dataClients = await responseClients.json();

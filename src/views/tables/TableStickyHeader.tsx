@@ -188,7 +188,7 @@ const TableStickyHeader = () => {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/update/produtos/${productToEdit?.id}`, {
+      const response = await fetch(`/api/update/clientes/${productToEdit?.id}`, {
         method: 'POST',
         body: JSON.stringify(data),
         headers: {
@@ -564,6 +564,7 @@ const TableStickyHeader = () => {
           </Box>
         </Box>
       </Modal>
+      
         {/* MODAL PARA CADASTRAR PRODUTO */}
       <Modal
         open={openAddProductModal}
