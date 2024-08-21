@@ -29,6 +29,7 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 
 // ** Global css styles
 import '../../styles/globals.css'
+import AlphaModal from 'src/views/AlphaModal'
 
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
@@ -72,7 +73,12 @@ const App = (props: ExtendedAppProps) => {
       <SettingsProvider>
         <SettingsConsumer>
           {({ settings }) => {
-            return <ThemeComponent settings={settings}>{getLayout(<Component {...pageProps} />)}</ThemeComponent>
+            return (
+              <ThemeComponent settings={settings}>
+                {getLayout(<Component {...pageProps} />)}
+                <AlphaModal />
+              </ThemeComponent>
+            );
           }}
         </SettingsConsumer>
       </SettingsProvider>
