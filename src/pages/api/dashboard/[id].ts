@@ -33,6 +33,7 @@ async function getProductsInSale(saleId: any) {
     `;
 
     const [rows]: any = await mysql.execute(query);
+    await mysql.end();
     return rows;
 }
 
@@ -91,14 +92,20 @@ const relatorioHoje = async () => {
         return rows;
     }
 
-    const totalVendas: any = await totalVendasValor()
-    const totalLucro: any = await totalLucroValor()
-    const qtdVendas: any =  await totalVendasQtd()
+    try {
+        const totalVendas: any = await totalVendasValor()
+        const totalLucro: any = await totalLucroValor()
+        const qtdVendas: any =  await totalVendasQtd()
 
-    return {
-        "totalVendas": totalVendas[0].total_sales,
-        "totalLucro": totalLucro,
-        "qtdVendas": qtdVendas[0].total_sales_count
+        return {
+            "totalVendas": totalVendas[0].total_sales,
+            "totalLucro": totalLucro,
+            "qtdVendas": qtdVendas[0].total_sales_count
+        }
+    } catch (error) {
+        throw new Error(`[error] ao gerar relatorio - ${error}`);
+    } finally {
+        await mysql.end();
     }
 }
 
@@ -161,14 +168,20 @@ const relatorioOntem = async () => {
         return rows;
     }
 
-    const totalVendas: any = await totalVendasValor()
-    const totalLucro: any = await totalLucroValor()
-    const qtdVendas: any =  await totalVendasQtd()
+    try {
+        const totalVendas: any = await totalVendasValor()
+        const totalLucro: any = await totalLucroValor()
+        const qtdVendas: any =  await totalVendasQtd()
 
-    return {
-        "totalVendas": totalVendas[0].total_sales,
-        "totalLucro": totalLucro,
-        "qtdVendas": qtdVendas[0].total_sales_count
+        return {
+            "totalVendas": totalVendas[0].total_sales,
+            "totalLucro": totalLucro,
+            "qtdVendas": qtdVendas[0].total_sales_count
+        }
+    } catch (error) {
+        throw new Error(`[error] ao gerar relatorio - ${error}`);
+    } finally {
+        await mysql.end();
     }
 }
 
@@ -240,14 +253,20 @@ const relatorio1Semana = async () => {
         return rows;
     }
 
-    const totalVendas: any = await totalVendasValor()
-    const totalLucro: any = await totalLucroValor()
-    const qtdVendas: any =  await totalVendasQtd()
-
-    return {
-        "totalVendas": totalVendas[0].total_sales,
-        "totalLucro": totalLucro,
-        "qtdVendas": qtdVendas[0].total_sales_count
+    try {
+        const totalVendas: any = await totalVendasValor()
+        const totalLucro: any = await totalLucroValor()
+        const qtdVendas: any =  await totalVendasQtd()
+    
+        return {
+            "totalVendas": totalVendas[0].total_sales,
+            "totalLucro": totalLucro,
+            "qtdVendas": qtdVendas[0].total_sales_count
+        }
+    } catch (error) {
+        throw new Error(`[error] ao gerar relatorio - ${error}`);
+    } finally {
+        await mysql.end();
     }
 }
 
@@ -316,14 +335,20 @@ const relatorioMes = async () => {
         return rows;
     }
 
-    const totalVendas: any = await totalVendasValor()
-    const totalLucro: any = await totalLucroValor()
-    const qtdVendas: any =  await totalVendasQtd()
-
-    return {
-        "totalVendas": totalVendas[0].total_sales,
-        "totalLucro": totalLucro,
-        "qtdVendas": qtdVendas[0].total_sales_count
+    try {
+        const totalVendas: any = await totalVendasValor()
+        const totalLucro: any = await totalLucroValor()
+        const qtdVendas: any =  await totalVendasQtd()
+    
+        return {
+            "totalVendas": totalVendas[0].total_sales,
+            "totalLucro": totalLucro,
+            "qtdVendas": qtdVendas[0].total_sales_count
+        }
+    } catch (error) {
+        throw new Error(`[error] ao gerar relatorio - ${error}`);
+    } finally {
+        await mysql.end();
     }
 }
 
@@ -392,14 +417,78 @@ const relatorioAnual = async () => {
         return rows;
     }
 
-    const totalVendas: any = await totalVendasValor()
-    const totalLucro: any = await totalLucroValor()
-    const qtdVendas: any =  await totalVendasQtd()
+    try {
+        const totalVendas: any = await totalVendasValor()
+        const totalLucro: any = await totalLucroValor()
+        const qtdVendas: any =  await totalVendasQtd()
+    
+        return {
+            "totalVendas": totalVendas[0].total_sales,
+            "totalLucro": totalLucro,
+            "qtdVendas": qtdVendas[0].total_sales_count
+        }
+    } catch (error) {
+        throw new Error(`[error] ao gerar relatorio - ${error}`);
+    } finally {
+        await mysql.end();
+    }
+}
 
-    return {
-        "totalVendas": totalVendas[0].total_sales,
-        "totalLucro": totalLucro,
-        "qtdVendas": qtdVendas[0].total_sales_count
+const relatorioTotal = async () => {
+    const mysql = await Mysql();
+
+    async function totalVendasValor() {
+        const query = `SELECT SUM(total) AS total_sales FROM sales`;
+        const [rows]: any = await mysql.execute(query);
+        return rows;
+    }
+
+    async function totalLucroValor() {
+        const query = `SELECT * FROM sales`;
+        
+        try {
+            const [sales]: any = await mysql.execute(query);
+            let totalProfitMargin = 0;
+
+            for (const sale of sales) {
+                let totalCost = 0;
+                let totalSale = sale.total;
+
+                const products = await getProductsInSale(sale.id);
+
+                for (const product of products) {
+                    totalCost += parseFloat(product.cost) * parseFloat(product.quantity);
+                }
+
+                totalProfitMargin += (parseFloat(totalSale) - totalCost);
+            }
+            return totalProfitMargin;
+        } catch (error) {
+            console.log(`[ERROR] - ${error}`)
+            throw new Error('[ERROR] Erro ao calcular a margem de lucro: ' + error);
+        }
+    }
+
+    async function totalVendasQtd() {
+        const query = `SELECT SUM(total) AS total_sales FROM sales`;
+        const [rows]: any = await mysql.execute(query);
+        return rows;
+    }
+
+    try {
+        const totalVendas: any = await totalVendasValor()
+        const totalLucro: any = await totalLucroValor()
+        const qtdVendas: any =  await totalVendasQtd()
+
+        return {
+            "totalVendas": totalVendas[0].total_sales,
+            "totalLucro": totalLucro,
+            "qtdVendas": qtdVendas[0].total_sales
+        }
+    } catch (error) {
+        throw new Error(`[error] ao gerar relatorio - ${error}`);
+    } finally {
+        await mysql.end();
     }
 }
 
@@ -428,6 +517,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 break;
             case "4":
                 resultado = await relatorioAnual();
+                break;
+            case "5":
+                resultado = await relatorioTotal();
                 break;
             default:
                 return res.status(400).json({ error: 'ID não reconhecido.' });

@@ -3,13 +3,12 @@ import mysql from "mysql2/promise";
 export async function Mysql() {
     try {
         const connection = await mysql.createConnection({
-            host: 'pdv-basic.mysql.uhserver.com',
+            host: 'localhost',
             port: 3306,
-            user: 'bwroot',
+            user: 'root',
             database: 'pdv_basic',
-            password: '@BW09@'
+            password: 'root'
         });
-        console.log('Conexão com o banco de dados bem-sucedida!');
         return connection;
     } catch (error) {
         console.error('Erro ao conectar ao banco de dados:', error);
