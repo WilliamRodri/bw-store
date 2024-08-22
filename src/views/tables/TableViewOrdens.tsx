@@ -1,5 +1,5 @@
 import { Box, Button, CircularProgress, Divider, IconButton, Modal, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography } from "@mui/material";
-import { DeleteEmpty, Eye, Pencil, Plus, Printer } from "mdi-material-ui";
+import { DeleteEmpty, Eye, Pencil, Plus } from "mdi-material-ui";
 import { Fragment, useEffect, useState } from "react";
 
 const TableViewOrdens = () => {
