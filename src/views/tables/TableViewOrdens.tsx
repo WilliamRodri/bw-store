@@ -9,7 +9,7 @@ const TableViewOrdens = () => {
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const colunasTabelaOrdem = [
         { id: 'id', label: '#', minWidth: 66, align: 'left' as const },
-        { id: 'client', label: 'CLIENTE', minWidth: 100, align: 'left' as const },
+        { id: 'client_id', label: 'CLIENTE', minWidth: 100, align: 'left' as const },
         { id: 'product', label: 'PRODUTO', minWidth: 150, align: 'left' as const },
         { id: 'status', label: 'STATUS', minWidth: 150, align: 'left' as const },
         { id: 'order_date', label: 'DATA', minWidth: 150, align: 'left' as const },
@@ -22,12 +22,12 @@ const TableViewOrdens = () => {
     const [openAddOrder, setOpenAddOrder] = useState<boolean>(false);
     const [openEditOrder, setOpenEditOrder] = useState<boolean>(false);
 
-    const [orders, setOrders] = useState<any[]>([]);
+    const [orders, setOrders] = useState<any>([]);
     const [clients, setClients] = useState<any[]>([]);
     const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
 
     const [newOrder, setNewOrder] = useState<any>({
-        client: '',
+        client_id: '',
         product: '',
         status: '',
         order_date: '',
@@ -41,7 +41,7 @@ const TableViewOrdens = () => {
     });
 
     const [orderToEdit, setOrderToEdit] = useState<any>({
-        client: '',
+        client_id: '',
         product: '',
         status: '',
         order_date: '',
@@ -53,65 +53,6 @@ const TableViewOrdens = () => {
         observation: '',
         conditions: ''
     });
-
-    const sales: any = [
-        {
-            "id": 1,
-            "client": "teste",
-            "product": "J2 PRIME",
-            "status": "ATIVO",
-            "order_date": "22/08/2024",
-            "description": "Descrição do Serviço",
-            "date_start": "22/08/2024",
-            "date_end": "23/08/2024",
-            "materials": "TELA",
-            "payment": "PIX",
-            "observation": "OBSERVAÇÃO",
-            "conditions": "test"
-        },
-        {
-            "id": 2,
-            "client": "teste 2",
-            "product": "IPHONE",
-            "status": "CANCELADO",
-            "order_date": "22/08/2024",
-            "description": "Descrição do Serviço",
-            "date_start": "22/08/2024",
-            "date_end": "23/08/2024",
-            "materials": "TELA",
-            "payment": "PIX",
-            "observation": "OBSERVAÇÃO",
-            "conditions": "test"
-        },
-        {
-            "id": 3,
-            "client": "teste 3",
-            "product": "SAMSUNG",
-            "status": "PENDENTE",
-            "order_date": "22/08/2024",
-            "description": "Descrição do Serviço",
-            "date_start": "22/08/2024",
-            "date_end": "23/08/2024",
-            "materials": "TELA",
-            "payment": "PIX",
-            "observation": "OBSERVAÇÃO",
-            "conditions": "test"
-        },
-        {
-            "id": 4,
-            "client": "teste 4",
-            "product": "LG",
-            "status": "T",
-            "order_date": "22/08/2024",
-            "description": "Descrição do Serviço",
-            "date_start": "22/08/2024",
-            "date_end": "23/08/2024",
-            "materials": "TELA",
-            "payment": "PIX",
-            "observation": "OBSERVAÇÃO",
-            "conditions": "test"
-        }
-    ];
 
     const statusOrder: any = [
         {
@@ -129,25 +70,25 @@ const TableViewOrdens = () => {
     ]
 
     // Ajuste da filtragem para considerar o valor da venda em diferentes formatos
-    const filteredRows = sales.filter((sale: any) =>
-        sale.id.toString().includes(searchTerm.toLowerCase()) ||
-        sale.status.toString().includes(searchTerm.toLowerCase()) ||
-        new Date(sale.order_date).toLocaleDateString('pt-BR').includes(searchTerm.toLowerCase())
+    const filteredRows = orders.filter((order: any) =>
+        order.id.toString().includes(searchTerm.toLowerCase()) ||
+        order.status.toString().includes(searchTerm.toLowerCase()) ||
+        new Date(order.order_date).toLocaleDateString('pt-BR').includes(searchTerm.toLowerCase())
     );
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                // const response = await fetch(`/api/ordens`);
+                const response = await fetch(`/api/ordens`);
                 const responseClients = await fetch(`/api/clientes`);
                 const responsePayments = await fetch(`/api/vendas`);
 
-                // const data = await response.json();
+                const data = await response.json();
                 const dataClients = await responseClients.json();
                 const dataPaymentMethods = await responsePayments.json();
 
-                // setOrders(data);
+                setOrders(data.orders);
                 setClients(dataClients.clients);
                 setPaymentMethods(dataPaymentMethods.paymentMethod);
             } catch (error) {
@@ -213,12 +154,184 @@ const TableViewOrdens = () => {
         })
     }
 
-    const handleDeleteOrder = () => {
+    const handleDeleteOrder = async () => {
+        if (selectedDeleteOrder == null) return;
+        
+        try {
+            const response = await fetch(`/api/delete/ordens/${selectedDeleteOrder}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
+            if (response.ok) {
+                location.replace('/ordens')
+            } else {
+                console.error('Failed to delete the order');
+            }
+        } catch (error) {
+            console.error('Error deleting the order:', error);
+        } finally {
+            setOpenConfirmModal(false);
+        }
     }
 
-    const handleSaveOrder = () => {
+    const [errorsAddOrder, setErrorsAddOrder] = useState({
+        client_id: false,
+        payment: false,
+        order_date: false,
+        product: false,
+        status: false,
+    });
+    console.error(errorsAddOrder);
 
+    const validateFieldsAddOrder = () => {
+        const newErrors = {
+            client_id: newOrder.client_id === "",
+            payment: newOrder.payment === "",
+            order_date: newOrder.order_date === "",
+            product: newOrder.product === "",
+            status: newOrder.status === ""
+        };
+    
+        setErrorsAddOrder(newErrors);
+    
+        // Retorna true se todos os campos forem válidos (sem erros)
+        return !Object.values(newErrors).includes(true);
+    };  
+
+    const [errorsEditOrder, setErrorsEditOrder] = useState<any>({
+        client_id: false,
+        payment: false,
+        order_date: false,
+        product: false,
+        status: false,
+    });
+
+    const validateFieldsEditOrder = () => {
+        const newErrors: any = {
+            client_id: orderToEdit.client_id === "",
+            payment: orderToEdit.payment === "",
+            order_date: orderToEdit.order_date === "",
+            product: orderToEdit.product === "",
+            status: orderToEdit.status === ""
+        };
+    
+        setErrorsEditOrder(newErrors);
+    
+        // Retorna true se todos os campos forem válidos (sem erros)
+        return !Object.values(newErrors).includes(true);
+    };
+    console.error(errorsEditOrder);
+
+    const handleSaveOrder = async () => {
+        if (validateFieldsAddOrder()) {
+            const randomNumber = Math.floor(Math.random() * 10000);
+            const randomCode = randomNumber.toString().padStart(4, '0');
+            const status = 
+                newOrder.status == "0" ? "ATIVO" :
+                newOrder.status == "1" ? "CANCELADO" :
+                newOrder.status == "2" ? "PENDENTE" :
+                "0";
+            const combinedData = {
+                id: randomCode,
+                client_id: newOrder.client_id,
+                product: newOrder.product,
+                status: status,
+                order_date: newOrder.order_date,
+                description: newOrder.description,
+                materials: newOrder.materials,
+                payment_id: newOrder.payment,
+                observation: newOrder.observation,
+                conditions: newOrder.conditions,
+                date_start: newOrder.date_start,
+                date_end: newOrder.date_end
+            }
+            try {
+                setLoading(true);
+
+                const response = await fetch(`/api/ordens/insertOrden/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(combinedData),
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to generate the sale');
+                    alert('Erro ao gerar a venda. Por favor, tente novamente.');
+                } else {
+                    location.replace('/ordens')
+                }
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Erro ao gerar a ordem. Por favor, tente novamente.');
+            } finally {
+                setOpenAddOrder(false);
+                setLoading(false);
+            }
+        } else {
+            alert("Preencha todos os campos obrigatorios corretamente!");
+        }
+    }
+
+    const formatDateToMySQL = (dateString: any) => {
+        const date = new Date(dateString);
+        // Converte para o formato YYYY-MM-DD HH:MM:SS
+        return date.toISOString().slice(0, 19).replace('T', ' ');
+    };
+
+    const handleSaveEditOrder = async () => {
+        if (validateFieldsEditOrder()) {
+            const status = 
+                orderToEdit.status == "0" ? "ATIVO" :
+                orderToEdit.status == "1" ? "CANCELADO" :
+                orderToEdit.status == "2" ? "PENDENTE" :
+                "0";
+
+            const combinedData = {
+                client_id: orderToEdit.client_id,
+                product: orderToEdit.product,
+                status: status,
+                order_date: formatDateToMySQL(orderToEdit.order_date),
+                description: orderToEdit.description,
+                materials: orderToEdit.materials,
+                payment_id: orderToEdit.payment,
+                observation: orderToEdit.observation,
+                conditions: orderToEdit.conditions,
+                date_start: formatDateToMySQL(orderToEdit.date_start),
+                date_end: formatDateToMySQL(orderToEdit.date_end)
+            };
+            try {
+                setLoading(true);
+                const response = await fetch(`/api/update/orden/${orderToEdit.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(combinedData),
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to update the order');
+                    alert('Erro ao atualizar a ordem. Por favor, tente novamente.');
+                } else {
+                    location.replace('/ordens')
+                }
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Erro ao atualizar a ordem. Por favor, tente novamente.');
+            } finally {
+                setOpenEditOrder(false);
+                setLoading(false);
+            }
+        } else {
+            alert("Preencha todos os campos obrigatorios corretamente!");
+        }
     }
 
     const handleEditOrder = (order: any) => {
@@ -257,7 +370,7 @@ const TableViewOrdens = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {sales.length === 0 ? (
+                                {orders.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={colunasTabelaOrdem.length}>
                                             <Typography variant="body2" sx={{ marginTop: 2 }}>
@@ -273,7 +386,9 @@ const TableViewOrdens = () => {
                                                 return (
                                                     <TableCell key={column.id} align={column.align}>
                                                         {
-                                                            column.id === 'client' ? (value)
+                                                            column.id === 'client_id' ? (
+                                                                clients.find((client: any) => client.id === order.client_id)?.name || 'Cliente não encontrado'
+                                                            )
                                                             :
                                                             column.id === 'product' ? (value)
                                                             :
@@ -287,22 +402,23 @@ const TableViewOrdens = () => {
                                                                 (<div>{value}</div>)
                                                             )
                                                             :
-                                                            column.id === 'order_date' ? (value)
+                                                            column.id === 'order_date' ? new Date(value).toLocaleDateString('pt-BR')
                                                             :
                                                             column.id === 'actions' ? (
                                                                 <Fragment>
                                                                     <IconButton onClick={() => handleOpenViewOrder(order)}>
                                                                         <Eye />
                                                                     </IconButton>
-                                                                    <IconButton onClick={() => handleEditOrder(order)}>
-                                                                        <Pencil />
-                                                                    </IconButton>
-                                                                    {/* <IconButton onClick={() => {}}>
-                                                                        <Printer />
-                                                                    </IconButton> */}
-                                                                    <IconButton onClick={() => handleOpenConfirmModal(order.id)}>
-                                                                        <DeleteEmpty />
-                                                                    </IconButton>
+                                                                    {order.status !== "CANCELADO" ? (
+                                                                        <>
+                                                                            <IconButton onClick={() => handleEditOrder(order)}>
+                                                                                <Pencil />
+                                                                            </IconButton>
+                                                                            <IconButton onClick={() => handleOpenConfirmModal(order.id)}>
+                                                                                <DeleteEmpty />
+                                                                            </IconButton>
+                                                                        </>
+                                                                    ) : ('')}
                                                                 </Fragment>
                                                             )
                                                             : value
@@ -388,8 +504,8 @@ const TableViewOrdens = () => {
                     <TextField
                         required
                         select
-                        value={newOrder.client}
-                        onChange={(e) => setNewOrder({ ...newOrder, client: e.target.value })}
+                        value={newOrder.client_id}
+                        onChange={(e) => setNewOrder({ ...newOrder, client_id: e.target.value })}
                         fullWidth
                         margin="normal"
                         SelectProps={{
@@ -567,8 +683,8 @@ const TableViewOrdens = () => {
                     <TextField
                         required
                         select
-                        value={orderToEdit.client}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, client: e.target.value })}
+                        value={orderToEdit.client_id}
+                        onChange={(e) => setOrderToEdit({ ...orderToEdit, client_id: e.target.value })}
                         fullWidth
                         margin="normal"
                         SelectProps={{
@@ -697,8 +813,8 @@ const TableViewOrdens = () => {
                         ))}
                     </TextField>
                     <Divider />
-                    <Button variant="contained" color="primary" onClick={handleSaveOrder}>
-                        FINALIZAR ORDEM
+                    <Button variant="contained" color="primary" onClick={handleSaveEditOrder}>
+                        SALVAR ORDEM
                     </Button>
                 </Box>
             </Modal>
@@ -732,7 +848,7 @@ const TableViewOrdens = () => {
                         fullWidth
                         multiline
                         variant="outlined"
-                        value={selectedOrder?.client}
+                        value={clients.find((client: any) => client.id === selectedOrder?.client_id)?.name || 'Cliente não encontrado'}
                         sx={{ marginBottom: 2 }}
                     />
                     <TextField
@@ -756,11 +872,10 @@ const TableViewOrdens = () => {
                         fullWidth
                         multiline
                         variant="outlined"
-                        value={selectedOrder?.order_date}
+                        value={new Date(selectedOrder?.order_date).toLocaleDateString('pt-BR')}
                         sx={{ marginBottom: 2 }}
                     />
-
-                    {/* Campo de descrição com ajuste automático de tamanho */}
+                    
                     <TextField
                         label="DESCRIÇÃO"
                         fullWidth
@@ -784,13 +899,12 @@ const TableViewOrdens = () => {
                             }
                         }}
                     />
-
                     <TextField
                         label="INÍCIO"
                         fullWidth
                         multiline
                         variant="outlined"
-                        value={selectedOrder?.date_start}
+                        value={new Date(selectedOrder?.date_start).toLocaleDateString('pt-BR')}
                         sx={{ marginBottom: 2 }}
                     />
                     <TextField
@@ -798,7 +912,7 @@ const TableViewOrdens = () => {
                         fullWidth
                         multiline
                         variant="outlined"
-                        value={selectedOrder?.date_end}
+                        value={new Date(selectedOrder?.date_end).toLocaleDateString('pt-BR')}
                         sx={{ marginBottom: 2 }}
                     />
                     <TextField
@@ -814,7 +928,12 @@ const TableViewOrdens = () => {
                         fullWidth
                         multiline
                         variant="outlined"
-                        value={selectedOrder?.payment}
+                        value={
+                            selectedOrder?.payment_id == 4 ? ('PIX') :
+                            selectedOrder?.payment_id == 2 ? ('CARTÃO') :
+                            selectedOrder?.payment_id == 1 ? ('DINHEIRO') :
+                            ''
+                        }
                         sx={{ marginBottom: 2 }}
                     />
                     <TextField
@@ -850,17 +969,17 @@ const TableViewOrdens = () => {
             >
                 <Box sx={{ width: 400, bgcolor: 'background.paper', padding: 4, margin: 'auto', marginTop: '20%', borderRadius: 1 }}>
                     <Typography id="confirm-modal-title" variant="h6" component="h2">
-                        Confirmar Exclusão
+                        Confirmar Cancelamento
                     </Typography>
                     <Typography variant="body1" sx={{ marginTop: 2 }}>
-                        Tem certeza de que deseja excluir a ordem de serviço?
+                        Tem certeza de que deseja cancelar a ordem de serviço?
                     </Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
                         <Button onClick={() => setOpenConfirmModal(false)} sx={{ marginRight: 1 }}>
                             Cancelar
                         </Button>
                         <Button variant="contained" color="error" onClick={handleDeleteOrder}>
-                            Excluir
+                            Prosseguir
                         </Button>
                     </Box>
                 </Box>
