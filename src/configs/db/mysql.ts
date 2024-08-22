@@ -3,11 +3,16 @@ import mysql from "mysql2/promise";
 export async function Mysql() {
     try {
         const connection = await mysql.createConnection({
-            host: 'pdv-basic.mysql.uhserver.com',
+            // host: 'pdv-basic.mysql.uhserver.com',
+            // port: 3306,
+            // user: 'bwroot',
+            // database: 'pdv_basic',
+            // password: '@BW09@'
+            host: 'localhost',
             port: 3306,
-            user: 'bwroot',
+            user: 'root',
             database: 'pdv_basic',
-            password: '@BW09@'
+            password: 'root'
         });
         return connection;
     } catch (error) {

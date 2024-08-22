@@ -5,7 +5,7 @@ import ShoppingCartIcon from 'mdi-material-ui/Cart';
 
 // ** Type import
 import { VerticalNavItemsType } from 'src/@core/layouts/types'
-import { AccountCircle, DoorClosed } from 'mdi-material-ui'
+import { AccountCircle, DoorClosed, Toolbox } from 'mdi-material-ui'
 
 const navigation = (): VerticalNavItemsType => {
   return [
@@ -18,6 +18,11 @@ const navigation = (): VerticalNavItemsType => {
       title: 'VENDAS',
       icon: ShoppingBagIcon,
       path: '/vendas'
+    },
+    {
+      title: 'OR. DE SERVIÇOS',
+      icon: Toolbox,
+      path: '/ordens'
     },
     {
       title: 'PRODUTOS',
