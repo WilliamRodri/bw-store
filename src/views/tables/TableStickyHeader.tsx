@@ -360,6 +360,9 @@ const TableStickyHeader = () => {
     }
   }
 
+  console.error({ errors })
+  console.error({ errorsCategory })
+
   return (
     <Fragment>
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>

@@ -10,9 +10,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { username, password } = req.body;
 
     try {
-        const user = { _id: 'wdowjdowjdw', password: 'root' };
+        const user = { _id: 'wdowjdowjdw', username: 'root', password: 'root' };
 
-        if (!user || user.password !== password) {
+        if (!user || user.password !== password || username != user.username) {
             return res.status(401).json({ message: 'Invalid username or password' });
         }
 

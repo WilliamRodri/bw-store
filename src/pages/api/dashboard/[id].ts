@@ -62,7 +62,7 @@ const relatorioHoje = async () => {
 
             for (const sale of sales) {
                 let totalCost = 0;
-                let totalSale = sale.total;
+                const totalSale = sale.total;
                     
                 const products = await getProductsInSale(sale.id);
                 for (const product of products) {
@@ -136,7 +136,7 @@ const relatorioOntem = async () => {
 
             for (const sale of sales) {
                 let totalCost = 0;
-                let totalSale = sale.total;
+                const totalSale = sale.total;
                     
                 const products = await getProductsInSale(sale.id);
                 for (const product of products) {
@@ -219,7 +219,7 @@ const relatorio1Semana = async () => {
 
             for (const sale of sales) {
                 let totalCost = 0;
-                let totalSale = parseFloat(sale.total);
+                const totalSale = parseFloat(sale.total);
 
                 const products = await getProductsInSale(sale.id);
 
@@ -304,7 +304,7 @@ const relatorioMes = async () => {
 
             for (const sale of sales) {
                 let totalCost = 0;
-                let totalSale = sale.total;
+                const totalSale = sale.total;
 
                 const products = await getProductsInSale(sale.id);
 
@@ -385,7 +385,7 @@ const relatorioAnual = async () => {
 
             for (const sale of sales) {
                 let totalCost = 0;
-                let totalSale = sale.total;
+                const totalSale = sale.total;
 
                 const products = await getProductsInSale(sale.id);
 
@@ -452,7 +452,7 @@ const relatorioTotal = async () => {
 
             for (const sale of sales) {
                 let totalCost = 0;
-                let totalSale = sale.total;
+                const totalSale = sale.total;
 
                 const products = await getProductsInSale(sale.id);
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Modal, Box, Typography, Button, Divider } from '@mui/material';
 
 const AlphaModal = () => {

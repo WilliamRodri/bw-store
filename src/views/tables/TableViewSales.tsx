@@ -253,6 +253,8 @@ const TableViewSales = () => {
         router.push(`/vendas/print/${id}`);
     }
 
+    console.error({ errors });
+
     return (
         <Fragment>
             <Paper sx={{ width: '100%', overflow: 'hidden' }} >

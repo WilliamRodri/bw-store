@@ -68,7 +68,7 @@ const TableClientes = () => {
             phone: clientToEdit.phone === ""
         }
     
-        setErrors(newErrors);
+        setErrorsEdit(newErrors);
         
         // Retorna true se todos os campos forem válidos (sem erros)
         return !Object.values(newErrors).includes(true);
@@ -252,6 +252,9 @@ const TableClientes = () => {
             alert("Por favor, preencha todos os campos obrigatórios.");
         }
     }
+
+    console.error({ errors });
+    console.error({ errorsEdit });
 
     return(
         <Fragment>
