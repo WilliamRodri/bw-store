@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { parseCookies } from 'nookies';
 
 export default function withAuth(Component: React.ComponentType<any>) {
   const AuthenticatedComponent: React.FC = (props) => {
@@ -8,10 +9,13 @@ export default function withAuth(Component: React.ComponentType<any>) {
     useEffect(() => {
       const checkAuth = async () => {
         try {
-          // const res = await fetch('/api/me');
-          // if (!res.ok) {
-          //   router.push('/login');
-          // }
+          const cookies = parseCookies();
+          const token = cookies.auth;
+
+          if (!token) {
+            router.push('/login');
+          }
+
         } catch (error) {
           console.error('Error checking authentication:', error);
           router.push('/login');

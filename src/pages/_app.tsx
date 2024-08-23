@@ -73,12 +73,7 @@ const App = (props: ExtendedAppProps) => {
       <SettingsProvider>
         <SettingsConsumer>
           {({ settings }) => {
-            return (
-              <ThemeComponent settings={settings}>
-                {getLayout(<Component {...pageProps} />)}
-                <AlphaModal />
-              </ThemeComponent>
-            );
+            return <ThemeComponent settings={settings}>{getLayout(<Component {...pageProps} />)}</ThemeComponent>
           }}
         </SettingsConsumer>
       </SettingsProvider>

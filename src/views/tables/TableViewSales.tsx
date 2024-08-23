@@ -5,6 +5,7 @@ import { Fragment, useEffect, useState } from "react";
 import ProductSelectionModal from "./ProductSelectionModal";
 
 const TableViewSales = () => {
+
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [sales, setSales] = useState<any[]>([]);
     const [paymentMethods, setPaymentMethods] = useState<any[]>([]);

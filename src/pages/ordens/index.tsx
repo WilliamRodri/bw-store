@@ -1,4 +1,5 @@
 import { CardHeader, Card, Grid } from "@mui/material";
+import withAuth from "src/lib/withAuth";
 import TableViewOrdens from "src/views/tables/TableViewOrdens";
 
 const Ordem = () => {
@@ -14,4 +15,4 @@ const Ordem = () => {
     );
 }
 
-export default Ordem;
+export default withAuth(Ordem);

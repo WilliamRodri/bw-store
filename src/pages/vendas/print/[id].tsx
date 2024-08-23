@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import withAuth from "src/lib/withAuth";
 
 const PrintPage = () => {
     const { query } = useRouter();
@@ -96,4 +97,4 @@ const PrintPage = () => {
     );
 }
 
-export default PrintPage;
+export default withAuth(PrintPage);

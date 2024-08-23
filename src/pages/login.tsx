@@ -1,7 +1,6 @@
 import { ChangeEvent, MouseEvent, ReactNode, useState } from 'react';
 import { useRouter } from 'next/router';
 
-// ** MUI Components importados
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -18,6 +17,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import themeConfig from 'src/configs/themeConfig';
 import BlankLayout from 'src/@core/layouts/BlankLayout';
 import { EyeOffOutline, EyeOutline } from 'mdi-material-ui';
+import { parseCookies } from 'nookies';
 
 interface State {
   username: string;
@@ -81,22 +81,27 @@ const LoginPage = () => {
         <CardContent sx={{ padding: theme => `${theme.spacing(12, 9, 7)} !important` }}>
           <Box sx={{ mb: 6 }}>
             <Typography variant='h5' sx={{ fontWeight: 600, marginBottom: 1.5 }}>
-              Bem Vindo - {themeConfig.templateName}! 👋🏻
+              👜 Bem Vindo ao {themeConfig.templateName}! 👋🏻
             </Typography>
-            <Typography variant='body2'>Por favor insira seu Username e Password abaixo!</Typography>
+            <Typography variant='caption' sx={{ marginBottom: 1 }}>
+              O software para pequenos comerciantes!
+            </Typography>
           </Box>
+          <Typography variant='body2' sx={{ marginBottom: 2 }}>
+            Por favor insira seu Usuário e sua Senha abaixo!
+          </Typography>
           <form noValidate autoComplete='off' onSubmit={handleSubmit}>
             <TextField
               autoFocus
               fullWidth
               id='username'
-              label='Username'
+              label='Nome de usuário'
               value={values.username}
               onChange={handleChange('username')}
               sx={{ marginBottom: 4 }}
             />
             <FormControl fullWidth>
-              <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
+              <InputLabel htmlFor='auth-login-password'>Senha</InputLabel>
               <OutlinedInput
                 id='auth-login-password'
                 label='Password'
@@ -117,10 +122,22 @@ const LoginPage = () => {
                 }
               />
             </FormControl>
-            {error && <Typography color='error'>{error}</Typography>}
+            {error && (
+              <Typography
+                style={{
+                  marginTop: '15px',
+                  padding: 5,
+                  backgroundColor: '#F1F1F1',
+                  borderRadius: '6px',
+                }}
+                color='#DD0000'
+              >
+                {error}
+              </Typography>
+            )}
             <Divider sx={{ margin: 5 }} />
             <Button fullWidth size='large' variant='contained' sx={{ marginBottom: 7 }} type='submit'>
-              Login
+              Acessar
             </Button>
           </form>
         </CardContent>

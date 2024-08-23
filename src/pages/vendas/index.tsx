@@ -1,4 +1,5 @@
 import { CardHeader, Grid, Card } from "@mui/material";
+import { parseCookies } from "nookies";
 import withAuth from "src/lib/withAuth";
 import TableViewSales from "src/views/tables/TableViewSales";
 

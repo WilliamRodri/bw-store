@@ -1,4 +1,5 @@
 import { CardHeader, Card, Grid } from "@mui/material";
+import withAuth from "src/lib/withAuth";
 import TableStickyHeader from "src/views/tables/TableStickyHeader";
 
 const Produtos = () => {
@@ -14,4 +15,4 @@ const Produtos = () => {
     )
 }
 
-export default Produtos;
+export default withAuth(Produtos);

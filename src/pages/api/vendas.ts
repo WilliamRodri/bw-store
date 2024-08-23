@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next/types';
+import { parseCookies } from 'nookies';
 import selectData from 'src/lib/querys/select';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
