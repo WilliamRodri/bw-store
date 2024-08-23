@@ -17,7 +17,6 @@ import InputAdornment from '@mui/material/InputAdornment';
 import themeConfig from 'src/configs/themeConfig';
 import BlankLayout from 'src/@core/layouts/BlankLayout';
 import { EyeOffOutline, EyeOutline } from 'mdi-material-ui';
-import { parseCookies } from 'nookies';
 
 interface State {
   username: string;
