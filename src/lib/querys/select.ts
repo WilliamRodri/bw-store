@@ -1,7 +1,7 @@
 import { Mysql } from 'src/configs/db/mysql';
 
-export default async function selectData(table: string): Promise<any> {
-    const mysql = await Mysql();
+export default async function selectData(req: any, table: string): Promise<any> {
+    const mysql = await Mysql(req);
     try {
         let query: string;
 

@@ -5,7 +5,7 @@ import selectDataWithCondition from 'src/lib/querys/selectDataWithCondition';
 import updateData from 'src/lib/querys/update';
 
 export default async function insertSale(req: NextApiRequest, res: NextApiResponse) {
-    const mysql = await Mysql();
+    const mysql = await Mysql(req);
 
     if (req.method === "POST") {
         try {
@@ -14,7 +14,7 @@ export default async function insertSale(req: NextApiRequest, res: NextApiRespon
 
             const subtotal = parseFloat(data.subtotal);
     
-            const saleId = await insertData('sales', {
+            const saleId = await insertData(req, 'sales', {
                 total: subtotal,
                 discount: parseFloat(data.discountSale),
                 client_id: data.client,
@@ -23,16 +23,16 @@ export default async function insertSale(req: NextApiRequest, res: NextApiRespon
             });
     
             for (const item of items) {
-                await insertData('sale_products', {
+                await insertData(req, 'sale_products', {
                     sale_id: saleId,
                     product_id: item.product_id,
                     quantity: parseInt(item.quantity),
                     discountProduct: parseFloat(item.discountProduct) || 0
                 });
     
-                const product = await selectDataWithCondition('products', 'id', item.product_id);
+                const product = await selectDataWithCondition(req, 'products', 'id', item.product_id);
                 const newStock = product[0].stock - parseInt(item.quantity);
-                await updateData('products', { stock: newStock }, item.product_id);
+                await updateData(req, 'products', { stock: newStock }, item.product_id);
             }
     
             return res.status(200).json({ id: saleId });

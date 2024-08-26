@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'DELETE') {
         try {
-            await deleteData('clients', 'sales', 'client_id', id);
+            await deleteData(req, 'clients', 'sales', 'client_id', id);
             res.status(200).json({ message: 'Cliente deletada com sucesso.' });
         } catch (error) {
             console.error('Erro ao deletar o cliente:', error);

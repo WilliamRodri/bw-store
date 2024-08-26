@@ -1,7 +1,7 @@
 import { Mysql } from 'src/configs/db/mysql';
 
-export default async function userVerify(user: string, pass: string): Promise<any> {
-    const mysql = await Mysql();
+export default async function userVerify(req: any, user: string, pass: string): Promise<any> {
+    const mysql = await Mysql(req);
 
     try {
         const query = "SELECT * FROM admins WHERE username = ? AND password = ?";

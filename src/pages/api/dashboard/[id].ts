@@ -22,8 +22,8 @@ import { Mysql } from 'src/configs/db/mysql';
 //     }
 // }
 
-async function getProductsInSale(saleId: any) {
-    const mysql = await Mysql();
+async function getProductsInSale(req: any, saleId: any) {
+    const mysql = await Mysql(req);
 
     const query = `
         SELECT products.*, sale_products.quantity
@@ -37,8 +37,8 @@ async function getProductsInSale(saleId: any) {
     return rows;
 }
 
-const relatorioHoje = async () => {
-    const mysql = await Mysql();
+const relatorioHoje = async (req: any) => {
+    const mysql = await Mysql(req);
 
     async function totalVendasValor() {
         const now = new Date();
@@ -64,7 +64,7 @@ const relatorioHoje = async () => {
                 let totalCost = 0;
                 const totalSale = sale.total;
                     
-                const products = await getProductsInSale(sale.id);
+                const products = await getProductsInSale(req, sale.id);
                 for (const product of products) {
                     totalCost += parseFloat(product.cost) * parseFloat(product.quantity);
                 }
@@ -109,8 +109,8 @@ const relatorioHoje = async () => {
     }
 }
 
-const relatorioOntem = async () => {
-    const mysql = await Mysql();
+const relatorioOntem = async (req: any) => {
+    const mysql = await Mysql(req);
 
     async function totalVendasValor() {
         const now = new Date();
@@ -138,7 +138,7 @@ const relatorioOntem = async () => {
                 let totalCost = 0;
                 const totalSale = sale.total;
                     
-                const products = await getProductsInSale(sale.id);
+                const products = await getProductsInSale(req, sale.id);
                 for (const product of products) {
                     totalCost += parseFloat(product.cost) * parseFloat(product.quantity);
                 }
@@ -185,8 +185,8 @@ const relatorioOntem = async () => {
     }
 }
 
-const relatorio1Semana = async () => {
-    const mysql = await Mysql();
+const relatorio1Semana = async (req: any) => {
+    const mysql = await Mysql(req);
 
     async function totalVendasValor() {
         const now = new Date();
@@ -221,7 +221,7 @@ const relatorio1Semana = async () => {
                 let totalCost = 0;
                 const totalSale = parseFloat(sale.total);
 
-                const products = await getProductsInSale(sale.id);
+                const products = await getProductsInSale(req, sale.id);
 
                 for (const product of products) {
                     totalCost += parseFloat(product.cost) * parseFloat(product.quantity);
@@ -270,8 +270,8 @@ const relatorio1Semana = async () => {
     }
 }
 
-const relatorioMes = async () => {
-    const mysql = await Mysql();
+const relatorioMes = async (req: any) => {
+    const mysql = await Mysql(req);
 
     async function totalVendasValor() {
         const now = new Date();
@@ -306,7 +306,7 @@ const relatorioMes = async () => {
                 let totalCost = 0;
                 const totalSale = sale.total;
 
-                const products = await getProductsInSale(sale.id);
+                const products = await getProductsInSale(req, sale.id);
 
                 for (const product of products) {
                     totalCost += parseFloat(product.cost) * parseFloat(product.quantity);
@@ -352,8 +352,8 @@ const relatorioMes = async () => {
     }
 }
 
-const relatorioAnual = async () => {
-    const mysql = await Mysql();
+const relatorioAnual = async (req: any) => {
+    const mysql = await Mysql(req);
 
     async function totalVendasValor() {
         const now = new Date();
@@ -387,7 +387,7 @@ const relatorioAnual = async () => {
                 let totalCost = 0;
                 const totalSale = sale.total;
 
-                const products = await getProductsInSale(sale.id);
+                const products = await getProductsInSale(req, sale.id);
 
                 for (const product of products) {
                     totalCost += parseFloat(product.cost) * parseFloat(product.quantity);
@@ -434,8 +434,8 @@ const relatorioAnual = async () => {
     }
 }
 
-const relatorioTotal = async () => {
-    const mysql = await Mysql();
+const relatorioTotal = async (req: any) => {
+    const mysql = await Mysql(req);
 
     async function totalVendasValor() {
         const query = `SELECT SUM(total) AS total_sales FROM sales`;
@@ -454,7 +454,7 @@ const relatorioTotal = async () => {
                 let totalCost = 0;
                 const totalSale = sale.total;
 
-                const products = await getProductsInSale(sale.id);
+                const products = await getProductsInSale(req, sale.id);
 
                 for (const product of products) {
                     totalCost += parseFloat(product.cost) * parseFloat(product.quantity);
@@ -504,22 +504,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         switch (id) {
             case "0": 
-                resultado = await relatorioHoje();
+                resultado = await relatorioHoje(req);
                 break;
             case "1":
-                resultado = await relatorioOntem();
+                resultado = await relatorioOntem(req);
                 break;
             case "2":
-                resultado = await relatorio1Semana();
+                resultado = await relatorio1Semana(req);
                 break;
             case "3":
-                resultado = await relatorioMes();
+                resultado = await relatorioMes(req);
                 break;
             case "4":
-                resultado = await relatorioAnual();
+                resultado = await relatorioAnual(req);
                 break;
             case "5":
-                resultado = await relatorioTotal();
+                resultado = await relatorioTotal(req);
                 break;
             default:
                 return res.status(400).json({ error: 'ID não reconhecido.' });

@@ -2,7 +2,7 @@ import insertData from './insert';
 import selectDataWithCondition from './selectDataWithCondition';
 import updateData from './update';
 
-async function insertSale(data: any, res: any) {
+async function insertSale(req: any, data: any, res: any) {
     try {
         const items = JSON.parse(data.items);
 
@@ -10,7 +10,7 @@ async function insertSale(data: any, res: any) {
         const subtotal = parseFloat(data.subtotal.match(regex)[0]);
 
         // Inserir a venda e obter o ID da venda gerada
-        const saleId = await insertData('sales', {
+        const saleId = await insertData(req, 'sales', {
             total: subtotal,
             discount: parseFloat(data.discountSale),
             client_id: data.client,
@@ -20,7 +20,7 @@ async function insertSale(data: any, res: any) {
 
         for (const item of items) {
             // Inserir cada produto da venda
-            await insertData('sale_products', {
+            await insertData(req, 'sale_products', {
                 sale_id: saleId,
                 product_id: item.id,
                 quantity: parseInt(item.quantity),
@@ -28,9 +28,9 @@ async function insertSale(data: any, res: any) {
             });
 
             // Selecionar o produto e atualizar o estoque
-            const product = await selectDataWithCondition('products', 'id', item.id);
+            const product = await selectDataWithCondition(req, 'products', 'id', item.id);
             const newStock = product[0].stock - parseInt(item.quantity);
-            await updateData('products', { stock: newStock }, item.id);
+            await updateData(req, 'products', { stock: newStock }, item.id);
         }
 
         console.log(`[INFO] Venda gerada com sucesso.`);

@@ -14,21 +14,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
 
             if (returnsStock === 'on') {
-                const saleProducts = await selectDataWithCondition('sale_products', 'sale_id', id);
+                const saleProducts = await selectDataWithCondition(req, 'sale_products', 'sale_id', id);
                 
                 await Promise.all(saleProducts.map(async (saleProduct: any) => {
                     const productId = saleProduct.product_id;
                     const quantity = saleProduct.quantity;
 
                     try {
-                        await updateStock('products', productId, quantity);
+                        await updateStock(req, 'products', productId, quantity);
                     } catch (err) {
                         console.log(`[ERROR] Error ao atualizar o estoque do produto ${productId}: ${err}`);
                     }
                 }));
             }
 
-            await deleteWithAssociation('sales', 'sale_products', 'sale_id', id);
+            await deleteWithAssociation(req, 'sales', 'sale_products', 'sale_id', id);
             res.status(200).json({ message: 'Venda deletada com sucesso.' });
         } catch (error) {
             console.error('Erro ao deletar venda:', error);

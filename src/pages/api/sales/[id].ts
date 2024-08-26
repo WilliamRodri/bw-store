@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Invalid ID' });
     }
 
-    const mysql = await Mysql();
+    const mysql = await Mysql(req);
 
     try {
         const querySales = `SELECT * FROM sales WHERE id = ?`;

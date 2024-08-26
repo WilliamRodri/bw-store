@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'POST') {
         try {
-            await updateData('clients', data, id);
+            await updateData(req, 'clients', data, id);
             res.status(200).json({ message: 'Cliente atualizado com sucesso.' });
         } catch (error) {
             console.error('Erro ao atualizar o cliente:', error);

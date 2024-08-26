@@ -1,7 +1,7 @@
 import { Mysql } from 'src/configs/db/mysql';
 
-export default async function updateStock(table: string, id: number, quantity: number): Promise<any> {
-    const mysql = await Mysql();
+export default async function updateStock(req: any, table: string, id: number, quantity: number): Promise<any> {
+    const mysql = await Mysql(req);
 
     try {
         const query = `UPDATE ${table} SET stock = stock + ? WHERE id = ?`;

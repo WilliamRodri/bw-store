@@ -1,7 +1,7 @@
 import { Mysql } from 'src/configs/db/mysql';
 
-export default async function selectDatasaleWithId(id: any): Promise<any> {
-    const mysql = await Mysql();
+export default async function selectDatasaleWithId(req: any, id: any): Promise<any> {
+    const mysql = await Mysql(req);
 
     try {
         const querySales = `SELECT * FROM sales WHERE id = ?`;

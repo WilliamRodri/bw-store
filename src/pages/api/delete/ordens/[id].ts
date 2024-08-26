@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'DELETE') {
         try {
-            await updateData('orders', { status: 'CANCELADO' }, id);
+            await updateData(req, 'orders', { status: 'CANCELADO' }, id);
             res.status(200).json({ message: 'Ordem deletada com sucesso.' });
         } catch (error) {
             console.error('Erro ao deletar a Ordem:', error);

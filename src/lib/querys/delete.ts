@@ -1,7 +1,7 @@
 import { Mysql } from 'src/configs/db/mysql';
 
-export default async function deleteData(table: string, associatedTable: string | null, columnId: string, id: any): Promise<void> {
-    const mysql = await Mysql();
+export default async function deleteData(req: any, table: string, associatedTable: string | null, columnId: string, id: any): Promise<void> {
+    const mysql = await Mysql(req);
 
     try {
         await mysql.beginTransaction();

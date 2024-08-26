@@ -1,7 +1,7 @@
 import { Mysql } from 'src/configs/db/mysql';
 
-export default async function insertData(table: string, data: object): Promise<number> {
-    const mysql = await Mysql();
+export default async function insertData(req: any, table: string, data: object): Promise<number> {
+    const mysql = await Mysql(req);
     try {
         await mysql.beginTransaction();
 

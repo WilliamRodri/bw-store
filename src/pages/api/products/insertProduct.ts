@@ -3,13 +3,13 @@ import { Mysql } from 'src/configs/db/mysql';
 import insertData from 'src/lib/querys/insert';
 
 export default async function insertProduct(req: NextApiRequest, res: NextApiResponse) {
-    const mysql = await Mysql();
+    const mysql = await Mysql(req);
 
     if (req.method === "POST") {
         try {
             const data = req.body;
     
-            await insertData('products', data);
+            await insertData(req, 'products', data);
     
             return res.status(200).json({ message: 'Success' });
         } catch (error) {

@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'DELETE') {
         try {
-            await deleteData('categories', 'products', 'category_id', id);
+            await deleteData(req, 'categories', 'products', 'category_id', id);
             res.status(200).json({ message: 'Produto deletada com sucesso.' });
         } catch (error) {
             console.error('Erro ao deletar o produto:', error);
