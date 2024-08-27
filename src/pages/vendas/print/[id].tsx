@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { parseCookies } from "nookies";
 import { useEffect, useState } from "react";
 import withAuth from "src/lib/withAuth";
 
@@ -7,6 +8,14 @@ const PrintPage = () => {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [clientData, setClientData] = useState<any>([]);
+
+    useEffect(() => {
+        const cookies = parseCookies();
+        const data = cookies.clientData;
+        setClientData(JSON.parse(data));
+        console.log(JSON.parse(data));
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -35,7 +44,7 @@ const PrintPage = () => {
             setTimeout(() => {
                 window.print();
                 window.addEventListener('afterprint', () => {
-                    window.location.href = '/sales';
+                    window.location.href = '/vendas';
                 });
             }, 500);
         }
@@ -50,16 +59,36 @@ const PrintPage = () => {
             <head>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 <title>Nota de Venda</title>
+                <style>
+                    {`
+                    @media print {
+                        /* Esconder tudo que não está dentro da div de impressão */
+                        body * {
+                            visibility: hidden;
+                        }
+                        /* Mostrar apenas o conteúdo da div de impressão */
+                        .print-area, .print-area * {
+                            visibility: visible;
+                        }
+                        /* Ocultar margens, padding e background */
+                        .print-area {
+                            margin: 0;
+                            padding: 0;
+                            background: none;
+                        }
+                    }
+                    `}
+                </style>
             </head>
-            <body style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px' }}>
-                <div style={{ width: '48mm' }}>
+            <body style={{ backgroundColor: 'white',color: 'black', fontFamily: 'Arial, sans-serif', fontSize: '10px' }}>
+                <div className="print-area" style={{ width: '48mm' }}>
                     <h4>DOCUMENTO AUXILIAR DE VENDA</h4>
                     <h5>NÃO É DOCUMENTO FISCAL</h5>
                     <hr />
-                    <h1>RT IMPORTS</h1>
-                    <p><strong>Instagram: </strong>@im.portsrt</p>
-                    <p><strong>WhatsApp: </strong>(85) 9 8128-9843</p>
-                    <p><strong>Endereço: </strong>Rua Beta, N° 200, Loja 2 - Vila Velha</p>
+                    <h1>{clientData.empresa}</h1>
+                    <p><strong>Instagram: </strong>@{clientData.instagram}</p>
+                    <p><strong>WhatsApp: </strong>{clientData.telefone}</p>
+                    <p><strong>Endereço: </strong>{clientData.endereco}</p>
                     <hr />
                     <p><strong>Cliente:</strong> {data.client.name}</p>
                     <p><strong>Data da Venda:</strong> {new Date(data.sale.sale_date).toLocaleDateString('pt-BR')}</p>

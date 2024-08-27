@@ -53,6 +53,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const serializedClientData = serialize('clientData', JSON.stringify({
             nome_cliente: user.nome_cliente,
             empresa: user.empresa,
+            instagram: user.instagram,
+            endereco: user.endereco,
+            telefone: user.telefone,
             db: user.db
         }), {
             httpOnly: false, // Permite leitura pelo JavaScript no cliente, apenas para teste
