@@ -14,7 +14,6 @@ const PrintPage = () => {
         const cookies = parseCookies();
         const data = cookies.clientData;
         setClientData(JSON.parse(data));
-        console.log(JSON.parse(data));
     }, []);
 
     useEffect(() => {
@@ -51,6 +50,8 @@ const PrintPage = () => {
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
     if (!data) return <p>No data available</p>;
+
+    console.log(data);
 
     return (
         <>
@@ -94,6 +95,7 @@ const PrintPage = () => {
                     <p>Total Itens: {data.saleProducts.length}</p>
                     <hr />
                     <p><strong>Pagamento:</strong> {data.paymentMethod.type_payment}</p>
+                    <p><strong>Desconto:</strong> {data.sale.discount === "0" ? "Sem Desconto": parseFloat(data.sale.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     <p><strong>Total:</strong> {parseFloat(data.sale.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     <hr />
                     <p>Obrigado pela compra! Volte sempre...</p>
