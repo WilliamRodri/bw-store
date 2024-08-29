@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import withAuth from "src/lib/withAuth";
 
 const PrintPage = () => {
-    const { query } = useRouter();
+    const { query, back } = useRouter();
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,12 +41,10 @@ const PrintPage = () => {
 
     useEffect(() => {
         if (!loading && data) {
-            setTimeout(() => {
-                window.print();
-                window.addEventListener('afterprint', () => {
-                    window.location.href = '/vendas';
-                });
-            }, 500);
+            window.print();
+            window.addEventListener('afterprint', () => {
+                window.location.href = '/vendas';
+            });
         }
     }, [loading, data]);
 
@@ -100,8 +98,35 @@ const PrintPage = () => {
                     <hr />
                     <p>Obrigado pela compra! Volte sempre...</p>
                     <hr />
+                    {/* Botão de Voltar */}
+                    <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                        <button
+                            onClick={() => back()}
+                            style={{
+                                backgroundColor: '#007bff',
+                                color: 'white',
+                                border: 'none',
+                                padding: '10px 20px',
+                                cursor: 'pointer',
+                                borderRadius: '5px',
+                                fontSize: '12px'
+                            }}
+                            className="no-print"
+                        >
+                            Voltar
+                        </button>
+                    </div>
                 </div>
             </body>
+
+            {/* Estilos para ocultar o botão na impressão */}
+            <style>{`
+                @media print {
+                    .no-print {
+                        display: none;
+                    }
+                }
+            `}</style>
         </>
     );
 }
