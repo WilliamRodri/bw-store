@@ -91,7 +91,7 @@ const TableNovaVenda = () => {
         const subtotal = total - newSale.discount;
         setNewSale((prevSale: any) => ({
             ...prevSale,
-            subtotal: subtotal < 0 ? 0 : subtotal, // Evita valores negativos
+            subtotal: subtotal < 0 ? 0 : subtotal,
         }));
     }, [newSale.products, newSale.discount]);
 
@@ -100,7 +100,7 @@ const TableNovaVenda = () => {
     }, [calculateSubtotal]);
 
     const loadMoreProducts = () => {
-        setVisibleProductsCount(prevCount => prevCount + 10); // Carregar mais 10 produtos
+        setVisibleProductsCount(prevCount => prevCount + 10);
     };
 
     const [errors, setErrors] = useState({
