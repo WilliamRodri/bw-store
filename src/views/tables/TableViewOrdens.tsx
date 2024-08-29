@@ -1,6 +1,9 @@
 import { Box, Button, CircularProgress, Divider, IconButton, Modal, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography } from "@mui/material";
-import { DeleteEmpty, Eye, Pencil, Plus } from "mdi-material-ui";
+import { DeleteEmpty, ExportVariant, Eye, Pencil, Plus } from "mdi-material-ui";
+import { useRouter } from "next/router";
+import { parseCookies } from "nookies";
 import { Fragment, useEffect, useState } from "react";
+import exportPdf from "src/lib/exportPdf";
 
 const TableViewOrdens = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -19,70 +22,25 @@ const TableViewOrdens = () => {
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
     const [openConfirmModal, setOpenConfirmModal] = useState<boolean>(false);
     const [selectedDeleteOrder, setSelectedDeleteOrder] = useState<any>(null);
-    const [openAddOrder, setOpenAddOrder] = useState<boolean>(false);
-    const [openEditOrder, setOpenEditOrder] = useState<boolean>(false);
 
     const [orders, setOrders] = useState<any>([]);
     const [clients, setClients] = useState<any[]>([]);
-    const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
 
-    const getCurrentDate = () => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    const [newOrder, setNewOrder] = useState<any>({
-        client_id: '1',
-        product: '',
-        status: '0',
-        order_date: getCurrentDate(),
-        description: '',
-        date_start: getCurrentDate(),
-        date_end: getCurrentDate(),
-        materials: '',
-        payment: '1',
-        observation: '',
-        conditions: ''
-    });
-
-    const [orderToEdit, setOrderToEdit] = useState<any>({
-        client_id: '',
-        product: '',
-        status: '',
-        order_date: '',
-        description: '',
-        date_start: '',
-        date_end: '',
-        materials: '',
-        payment: '',
-        observation: '',
-        conditions: ''
-    });
-
-    const statusOrder: any = [
-        {
-            id: 0,
-            text: "ATIVO"
-        },
-        {
-            id: 1,
-            text: "CANCELADO"
-        },
-        {
-            id: 2,
-            text: "PENDENTE"
-        }
-    ]
+    const router = useRouter();
+    const cookies = parseCookies();
+    const clientData = JSON.parse(cookies.clientData);
+    console.log({
+        ordens: clientData
+    })
 
     // Ajuste da filtragem para considerar o valor da venda em diferentes formatos
-    const filteredRows = orders.filter((order: any) =>
-        order.id.toString().includes(searchTerm.toLowerCase()) ||
-        order.status.toString().includes(searchTerm.toLowerCase()) ||
-        new Date(order.order_date).toLocaleDateString('pt-BR').includes(searchTerm.toLowerCase())
-    );
+    const filteredRows = orders
+        .filter((order: any) =>
+            order.id.toString().includes(searchTerm.toLowerCase()) ||
+            order.status.toString().includes(searchTerm.toLowerCase()) ||
+            new Date(order.order_date).toLocaleDateString('pt-BR').includes(searchTerm.toLowerCase())
+        )
+        .sort((a: any, b: any) => new Date(b.order_date).getTime() - new Date(a.order_date).getTime()); // Ordena da data mais recente para a mais antiga
 
     useEffect(() => {
         const fetchData = async () => {
@@ -98,14 +56,12 @@ const TableViewOrdens = () => {
 
                 setOrders(data.orders);
                 setClients(dataClients.clients);
-                setPaymentMethods(dataPaymentMethods.paymentMethod);
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
             }
         }
-
         fetchData();
     }, []);
 
@@ -126,40 +82,6 @@ const TableViewOrdens = () => {
     const handleOpenConfirmModal = (orderId: any) => {
         setSelectedDeleteOrder(orderId);
         setOpenConfirmModal(true);
-    }
-
-    const handleOpenCloseAddOrder = () => {
-        setOpenAddOrder(false);
-        setNewOrder({
-            client_id: '1',
-            product: '',
-            status: '0',
-            order_date: getCurrentDate(),
-            description: '',
-            date_start: getCurrentDate(),
-            date_end: getCurrentDate(),
-            materials: '',
-            payment: '1',
-            observation: '',
-            conditions: ''
-        })
-    }
-    
-    const handleOpenCloseEditOrder = () => {
-        setOpenEditOrder(false);
-        setOrderToEdit({
-            client_id: '1',
-            product: '',
-            status: '0',
-            order_date: getCurrentDate(),
-            description: '',
-            date_start: getCurrentDate(),
-            date_end: getCurrentDate(),
-            materials: '',
-            payment: '1',
-            observation: '',
-            conditions: ''
-        })
     }
 
     const handleDeleteOrder = async () => {
@@ -185,168 +107,6 @@ const TableViewOrdens = () => {
         }
     }
 
-    const [errorsAddOrder, setErrorsAddOrder] = useState({
-        client_id: false,
-        payment: false,
-        order_date: false,
-        product: false,
-        status: false,
-    });
-    console.error(errorsAddOrder);
-
-    const validateFieldsAddOrder = () => {
-        const newErrors = {
-            client_id: newOrder.client_id === "",
-            payment: newOrder.payment === "",
-            order_date: newOrder.order_date === "",
-            product: newOrder.product === "",
-            status: newOrder.status === ""
-        };
-    
-        setErrorsAddOrder(newErrors);
-    
-        // Retorna true se todos os campos forem válidos (sem erros)
-        return !Object.values(newErrors).includes(true);
-    };  
-
-    const [errorsEditOrder, setErrorsEditOrder] = useState<any>({
-        client_id: false,
-        payment: false,
-        order_date: false,
-        product: false,
-        status: false,
-    });
-
-    const validateFieldsEditOrder = () => {
-        const newErrors: any = {
-            client_id: orderToEdit.client_id === "",
-            payment: orderToEdit.payment === "",
-            order_date: orderToEdit.order_date === "",
-            product: orderToEdit.product === "",
-            status: orderToEdit.status === ""
-        };
-    
-        setErrorsEditOrder(newErrors);
-    
-        // Retorna true se todos os campos forem válidos (sem erros)
-        return !Object.values(newErrors).includes(true);
-    };
-    console.error(errorsEditOrder);
-
-    const handleSaveOrder = async () => {
-        if (validateFieldsAddOrder()) {
-            const randomNumber = Math.floor(Math.random() * 10000);
-            const randomCode = randomNumber.toString().padStart(4, '0');
-            const status = 
-                newOrder.status == "0" ? "ATIVO" :
-                newOrder.status == "1" ? "CANCELADO" :
-                newOrder.status == "2" ? "PENDENTE" :
-                "0";
-            const combinedData = {
-                id: randomCode,
-                client_id: newOrder.client_id,
-                product: newOrder.product,
-                status: status,
-                order_date: newOrder.order_date,
-                description: newOrder.description,
-                materials: newOrder.materials,
-                payment_id: newOrder.payment,
-                observation: newOrder.observation,
-                conditions: newOrder.conditions,
-                date_start: newOrder.date_start,
-                date_end: newOrder.date_end
-            }
-            try {
-                setLoading(true);
-
-                const response = await fetch(`/api/ordens/insertOrden/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(combinedData),
-                });
-
-                if (!response.ok) {
-                    console.error('Failed to generate the sale');
-                    alert('Erro ao gerar a venda. Por favor, tente novamente.');
-                } else {
-                    location.replace('/ordens')
-                }
-
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                alert('Erro ao gerar a ordem. Por favor, tente novamente.');
-            } finally {
-                setOpenAddOrder(false);
-                setLoading(false);
-            }
-        } else {
-            alert("Preencha todos os campos obrigatorios corretamente!");
-        }
-    }
-
-    const formatDateToMySQL = (dateString: any) => {
-        const date = new Date(dateString);
-        // Converte para o formato YYYY-MM-DD HH:MM:SS
-        return date.toISOString().slice(0, 19).replace('T', ' ');
-    };
-
-    const handleSaveEditOrder = async () => {
-        if (validateFieldsEditOrder()) {
-            const status = 
-                orderToEdit.status == "0" ? "ATIVO" :
-                orderToEdit.status == "1" ? "CANCELADO" :
-                orderToEdit.status == "2" ? "PENDENTE" :
-                "0";
-
-            const combinedData = {
-                client_id: orderToEdit.client_id,
-                product: orderToEdit.product,
-                status: status,
-                order_date: formatDateToMySQL(orderToEdit.order_date),
-                description: orderToEdit.description,
-                materials: orderToEdit.materials,
-                payment_id: orderToEdit.payment,
-                observation: orderToEdit.observation,
-                conditions: orderToEdit.conditions,
-                date_start: formatDateToMySQL(orderToEdit.date_start),
-                date_end: formatDateToMySQL(orderToEdit.date_end)
-            };
-            try {
-                setLoading(true);
-                const response = await fetch(`/api/update/orden/${orderToEdit.id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(combinedData),
-                });
-
-                if (!response.ok) {
-                    console.error('Failed to update the order');
-                    alert('Erro ao atualizar a ordem. Por favor, tente novamente.');
-                } else {
-                    location.replace('/ordens')
-                }
-
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                alert('Erro ao atualizar a ordem. Por favor, tente novamente.');
-            } finally {
-                setOpenEditOrder(false);
-                setLoading(false);
-            }
-        } else {
-            alert("Preencha todos os campos obrigatorios corretamente!");
-        }
-    }
-
-    const handleEditOrder = (order: any) => {
-        setOpenEditOrder(true);
-        setOrderToEdit(order);
-    }
-
     return(
         <Fragment>
             <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -358,7 +118,7 @@ const TableViewOrdens = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{ margin: '10px 20px' }}
                 />
-                <Button variant="contained" startIcon={<Plus />} style={{ margin: '10px 20px' }} onClick={() => setOpenAddOrder(true)}>
+                <Button variant="contained" startIcon={<Plus />} style={{ margin: '10px 20px' }} onClick={() => { router.push('/ordens/novo/') }}>
                     GERAR NOVA ORDEM
                 </Button>
                 {loading ? (
@@ -419,11 +179,14 @@ const TableViewOrdens = () => {
                                                                     </IconButton>
                                                                     {order.status !== "CANCELADO" ? (
                                                                         <>
-                                                                            <IconButton onClick={() => handleEditOrder(order)}>
+                                                                            <IconButton onClick={() => { router.push(`/ordens/editar/${order.id}`) }}>
                                                                                 <Pencil />
                                                                             </IconButton>
                                                                             <IconButton onClick={() => handleOpenConfirmModal(order.id)}>
                                                                                 <DeleteEmpty />
+                                                                            </IconButton>
+                                                                            <IconButton onClick={() => exportPdf(order, clientData)}>
+                                                                                <ExportVariant />
                                                                             </IconButton>
                                                                         </>
                                                                     ) : ('')}
@@ -448,384 +211,11 @@ const TableViewOrdens = () => {
                             onPageChange={handleChangePage}
                             onRowsPerPageChange={handleChangeRowsPerPage}
                             labelRowsPerPage="Linhas por página"
-                            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
-                            getItemAriaLabel={(type) => {
-                              if (type === 'first') {
-                                return 'Primeira página';
-                              }
-                              if (type === 'previous') {
-                                return 'Página anterior';
-                              }
-                              if (type === 'next') {
-                                return 'Próxima página';
-                              }
-                              if (type === 'last') {
-                                return 'Última página';
-                              }
-                              return '';
-                            }}
+                            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
                         />
                     </TableContainer>
                 )}
             </Paper>
-
-            {/* MODAL PARA GERAR NOVA ORDEM */}
-            <Modal
-                open={openAddOrder}
-                onClose={() => setOpenAddOrder(false)}
-                aria-labelledby="new-sale-modal-title"
-                aria-describedby="new-sale-modal-description"
-            >
-                <Box
-                    sx={{
-                        width: {
-                            xs: '90%',
-                            sm: 400,
-                            md: 500,
-                        },
-                        maxHeight: '80vh',
-                        bgcolor: 'background.paper',
-                        padding: {
-                            xs: 2,
-                            sm: 3,
-                            md: 4,
-                        },
-                        margin: 'auto',
-                        marginTop: {
-                            xs: '10%',
-                            sm: '5%',
-                        },
-                        borderRadius: 1,
-                        boxShadow: 24,
-                        overflowY: 'auto',
-                    }}
-                >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography id="new-sale-modal-title" variant="h6" component="h2">
-                            GERANDO ORDEM DE SERVIÇO
-                        </Typography>
-                        <Button variant="contained" color="primary" onClick={handleOpenCloseAddOrder}>
-                            CANCELAR
-                        </Button>
-                    </Box>
-                    <Divider />
-                    <TextField
-                        required
-                        select
-                        value={newOrder.client_id}
-                        onChange={(e) => setNewOrder({ ...newOrder, client_id: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        SelectProps={{
-                            native: true,
-                        }}
-                    >
-                        <option value="">SELECIONE UM CLIENTE</option>
-                        {clients.map((client: any) => (
-                            <option key={client.id} value={client.id}>{client.name}</option>
-                        ))}
-                    </TextField>
-                    <TextField
-                        required
-                        select
-                        value={newOrder.payment}
-                        onChange={(e) => setNewOrder({ ...newOrder, payment: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        SelectProps={{
-                            native: true,
-                        }}
-                    >
-                        <option value="">SELECIONE UMA FORMA DE PAGAMENTO</option>
-                        {paymentMethods.map(paymentMethod => (
-                            <option key={paymentMethod.id} value={paymentMethod.id}>{paymentMethod.type_payment}</option>
-                        ))}
-                    </TextField>
-                    <Divider />
-                    <TextField
-                        required
-                        type="date"
-                        label="DATA DA ORDEM"
-                        value={newOrder.order_date}
-                        onChange={(e) => setNewOrder({ ...newOrder, order_date: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                    />
-                    <Divider />
-                    <TextField
-                        required
-                        label="PRODUTO"
-                        value={newOrder.product}
-                        onChange={(e) => setNewOrder({ ...newOrder, product: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        label="MATERIAIS"
-                        value={newOrder.materials}
-                        onChange={(e) => setNewOrder({ ...newOrder, materials: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        label="CONDIÇÕES"
-                        value={newOrder.conditions}
-                        onChange={(e) => setNewOrder({ ...newOrder, conditions: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        label="DESCRIÇÃO DO SERVIÇO"
-                        value={newOrder.description}
-                        onChange={(e) => setNewOrder({ ...newOrder, description: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        label="OBSERVAÇÃO DO SERVIÇO OU PRODUTO"
-                        value={newOrder.observation}
-                        onChange={(e) => setNewOrder({ ...newOrder, observation: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        type="date"
-                        label="DATA DE INÍCIO"
-                        value={newOrder.date_start}
-                        onChange={(e) => setNewOrder({ ...newOrder, date_start: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                    />
-                    <Divider />
-                    <TextField
-                        type="date"
-                        label="PREVISÃO DE ENTREGA"
-                        value={newOrder.date_end}
-                        onChange={(e) => setNewOrder({ ...newOrder, date_end: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                    />
-                    <Divider />
-                    <TextField
-                        required
-                        select
-                        value={newOrder.status}
-                        onChange={(e) => setNewOrder({ ...newOrder, status: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        SelectProps={{
-                            native: true,
-                        }}
-                    >
-                        <option value="">SELECIONE UM STATUS</option>
-                        {statusOrder.map((status: any) => (
-                            <option key={status.id} value={status.id}>{status.text}</option>
-                        ))}
-                    </TextField>
-                    <Divider />
-                    <Button variant="contained" color="primary" onClick={handleSaveOrder}>
-                        FINALIZAR ORDEM
-                    </Button>
-                </Box>
-            </Modal>
-
-            {/* MODAL PARA EDITAR ORDEM */}
-            <Modal
-                open={openEditOrder}
-                onClose={() => setOpenEditOrder(false)}
-                aria-labelledby="new-sale-modal-title"
-                aria-describedby="new-sale-modal-description"
-            >
-                <Box
-                    sx={{
-                        width: {
-                            xs: '90%',
-                            sm: 400,
-                            md: 500,
-                        },
-                        maxHeight: '80vh',
-                        bgcolor: 'background.paper',
-                        padding: {
-                            xs: 2,
-                            sm: 3,
-                            md: 4,
-                        },
-                        margin: 'auto',
-                        marginTop: {
-                            xs: '10%',
-                            sm: '5%',
-                        },
-                        borderRadius: 1,
-                        boxShadow: 24,
-                        overflowY: 'auto',
-                    }}
-                >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography id="new-sale-modal-title" variant="h6" component="h2">
-                            EDITANDO ORDEM DE SERVIÇO
-                        </Typography>
-                        <Button variant="contained" color="primary" onClick={handleOpenCloseEditOrder}>
-                            CANCELAR
-                        </Button>
-                    </Box>
-                    <Divider />
-                    <TextField
-                        required
-                        select
-                        value={orderToEdit.client_id}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, client_id: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        SelectProps={{
-                            native: true,
-                        }}
-                    >
-                        <option value="">SELECIONE UM CLIENTE</option>
-                        {clients.map((client: any) => (
-                            <option key={client.id} value={client.id}>{client.name}</option>
-                        ))}
-                    </TextField>
-                    <TextField
-                        required
-                        select
-                        value={orderToEdit.payment}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, payment: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        SelectProps={{
-                            native: true,
-                        }}
-                    >
-                        <option value="">SELECIONE UMA FORMA DE PAGAMENTO</option>
-                        {paymentMethods.map(paymentMethod => (
-                            <option key={paymentMethod.id} value={paymentMethod.id}>{paymentMethod.type_payment}</option>
-                        ))}
-                    </TextField>
-                    <Divider />
-                    <TextField
-                        required
-                        type="date"
-                        label="DATA DA ORDEM"
-                        value={orderToEdit.order_date}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, order_date: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                    />
-                    <Divider />
-                    <TextField
-                        required
-                        label="PRODUTO"
-                        value={orderToEdit.product}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, product: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        label="MATERIAIS"
-                        value={orderToEdit.materials}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, materials: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        label="CONDIÇÕES"
-                        value={orderToEdit.conditions}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, conditions: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        label="DESCRIÇÃO DO SERVIÇO"
-                        value={orderToEdit.description}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, description: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        label="OBSERVAÇÃO DO SERVIÇO OU PRODUTO"
-                        value={orderToEdit.observation}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, observation: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        inputProps={{ min: 0 }}
-                    />
-                    <Divider />
-                    <TextField
-                        type="date"
-                        label="DATA DE INÍCIO"
-                        value={orderToEdit.date_start}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, date_start: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                    />
-                    <Divider />
-                    <TextField
-                        type="date"
-                        label="PREVISÃO DE ENTREGA"
-                        value={orderToEdit.date_end}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, date_end: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                    />
-                    <Divider />
-                    <TextField
-                        required
-                        select
-                        value={orderToEdit.status}
-                        onChange={(e) => setOrderToEdit({ ...orderToEdit, status: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        SelectProps={{
-                            native: true,
-                        }}
-                    >
-                        <option value="">SELECIONE UM STATUS</option>
-                        {statusOrder.map((status: any) => (
-                            <option key={status.id} value={status.id}>{status.text}</option>
-                        ))}
-                    </TextField>
-                    <Divider />
-                    <Button variant="contained" color="primary" onClick={handleSaveEditOrder}>
-                        SALVAR ORDEM
-                    </Button>
-                </Box>
-            </Modal>
 
             {/* MODAL DE DETALHES DA ORDEM */}
             <Modal
@@ -993,7 +383,7 @@ const TableViewOrdens = () => {
                 </Box>
             </Modal>
         </Fragment>
-    );
+    )
 }
 
 export default TableViewOrdens;
