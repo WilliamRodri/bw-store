@@ -3,10 +3,10 @@ import { useRouter } from "next/router";
 import withAuth from "src/lib/withAuth";
 import TableEditarOrdem from "src/views/tables/TableEditarOrdem";
 
-const editar = () => {
+const Editar = () => {
     const { query } = useRouter();
 
-    return(
+    return (
         <>
             <Grid item xs={12}>
                 <Card>
@@ -18,4 +18,4 @@ const editar = () => {
     );
 }
 
-export default withAuth(editar);
+export default withAuth(Editar);

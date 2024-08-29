@@ -48,11 +48,9 @@ const TableViewOrdens = () => {
                 setLoading(true);
                 const response = await fetch(`/api/ordens`);
                 const responseClients = await fetch(`/api/clientes`);
-                const responsePayments = await fetch(`/api/vendas`);
 
                 const data = await response.json();
                 const dataClients = await responseClients.json();
-                const dataPaymentMethods = await responsePayments.json();
 
                 setOrders(data.orders);
                 setClients(dataClients.clients);
