@@ -95,6 +95,9 @@ const PrintPage = () => {
                     <p>Total Itens: {data.saleProducts.length}</p>
                     <hr />
                     <p><strong>Pagamento:</strong> {data.paymentMethod.type_payment}</p>
+                    <p><strong>Valor Bruto:</strong> {
+                        (parseFloat(data.sale.total) + parseFloat(data.sale.discount)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                    }</p>
                     <p><strong>Desconto:</strong> {data.sale.discount === "0" ? "Sem Desconto": parseFloat(data.sale.discount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     <p><strong>Total:</strong> {parseFloat(data.sale.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     <hr />
