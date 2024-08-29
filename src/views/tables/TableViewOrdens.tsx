@@ -28,10 +28,18 @@ const TableViewOrdens = () => {
 
     const router = useRouter();
     const cookies = parseCookies();
-    const clientData = JSON.parse(cookies.clientData);
-    console.log({
-        ordens: clientData
-    })
+    const clientDataRaw = cookies.clientData;
+    
+    let clientData = {};
+    if (clientDataRaw) {
+        try {
+            clientData = JSON.parse(clientDataRaw);
+        } catch (error) {
+            console.error("Erro ao parsear clientData dos cookies:", error);
+        }
+    } else {
+        console.warn("clientData não encontrado nos cookies.");
+    }
 
     // Ajuste da filtragem para considerar o valor da venda em diferentes formatos
     const filteredRows = orders
