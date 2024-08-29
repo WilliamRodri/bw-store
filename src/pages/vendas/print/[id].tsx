@@ -59,29 +59,9 @@ const PrintPage = () => {
             <head>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 <title>Nota de Venda</title>
-                <style>
-                    {`
-                    @media print {
-                        /* Esconder tudo que não está dentro da div de impressão */
-                        body * {
-                            visibility: hidden;
-                        }
-                        /* Mostrar apenas o conteúdo da div de impressão */
-                        .print-area, .print-area * {
-                            visibility: visible;
-                        }
-                        /* Ocultar margens, padding e background */
-                        .print-area {
-                            margin: 0;
-                            padding: 0;
-                            background: none;
-                        }
-                    }
-                    `}
-                </style>
             </head>
-            <body style={{ backgroundColor: 'white',color: 'black', fontFamily: 'Arial, sans-serif', fontSize: '10px' }}>
-                <div className="print-area" style={{ width: '48mm' }}>
+            <body style={{ fontFamily: 'sans-serif', fontSize: '10px' }}>
+                <div style={{ width: '48mm' }}>
                     <h4>DOCUMENTO AUXILIAR DE VENDA</h4>
                     <h5>NÃO É DOCUMENTO FISCAL</h5>
                     <hr />
