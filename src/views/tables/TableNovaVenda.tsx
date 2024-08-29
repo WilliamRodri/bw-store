@@ -41,9 +41,11 @@ const TableNovaVenda = () => {
                 const data = await response.json();
                 const dataClients = await responseClients.json();
 
+                const availableProducts = data.products.filter((product: any) => product.stock > 1);
+
                 setPaymentMethods(data.paymentMethod);
-                setProducts(data.products);
-                setFilteredProducts(data.products);
+                setProducts(availableProducts);
+                setFilteredProducts(availableProducts);
                 setClients(dataClients.clients);
             } catch (error) {
                 console.error('Error fetching data:', error);
