@@ -26,16 +26,24 @@ const TableViewOrdens = () => {
     const [clients, setClients] = useState<any[]>([]);
     const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
 
+    const getCurrentDate = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const [newOrder, setNewOrder] = useState<any>({
-        client_id: '',
+        client_id: '1',
         product: '',
-        status: '',
-        order_date: '',
+        status: '0',
+        order_date: getCurrentDate(),
         description: '',
-        date_start: '',
-        date_end: '',
+        date_start: getCurrentDate(),
+        date_end: getCurrentDate(),
         materials: '',
-        payment: '',
+        payment: '1',
         observation: '',
         conditions: ''
     });
@@ -123,15 +131,15 @@ const TableViewOrdens = () => {
     const handleOpenCloseAddOrder = () => {
         setOpenAddOrder(false);
         setNewOrder({
-            client: '',
+            client_id: '1',
             product: '',
-            status: '',
-            order_date: '',
+            status: '0',
+            order_date: getCurrentDate(),
             description: '',
-            date_start: '',
-            date_end: '',
+            date_start: getCurrentDate(),
+            date_end: getCurrentDate(),
             materials: '',
-            payment: '',
+            payment: '1',
             observation: '',
             conditions: ''
         })
@@ -140,15 +148,15 @@ const TableViewOrdens = () => {
     const handleOpenCloseEditOrder = () => {
         setOpenEditOrder(false);
         setOrderToEdit({
-            client: '',
+            client_id: '1',
             product: '',
-            status: '',
-            order_date: '',
+            status: '0',
+            order_date: getCurrentDate(),
             description: '',
-            date_start: '',
-            date_end: '',
+            date_start: getCurrentDate(),
+            date_end: getCurrentDate(),
             materials: '',
-            payment: '',
+            payment: '1',
             observation: '',
             conditions: ''
         })

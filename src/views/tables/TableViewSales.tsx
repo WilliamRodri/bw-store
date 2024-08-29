@@ -22,13 +22,21 @@ const TableViewSales = () => {
     const [clients, setClients] = useState<any[]>([]);
     const router = useRouter();
 
+    const getCurrentDate = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     // Modal de "NOVA VENDA"
     const [openProductModal, setOpenProductModal] = useState(false);
     const [openNewSaleModal, setOpenNewSaleModal] = useState<boolean>(false);
     const [newSale, setNewSale] = useState<any>({
-        clientId: '',
-        paymentMethodId: '',
-        saleDate: '',
+        clientId: '1',
+        paymentMethodId: '1',
+        saleDate: getCurrentDate(),
         products: [],
         discount: 0,
         subtotal: 0,
@@ -60,9 +68,9 @@ const TableViewSales = () => {
     
     const handleCloseNewSaleModal = () => {
         setNewSale({
-            clientId: '',
-            paymentMethodId: '',
-            saleDate: new Date().toISOString().split('T')[0],
+            clientId: '1',
+            paymentMethodId: '1',
+            saleDate: getCurrentDate(),
             products: [],
             discount: 0,
             subtotal: 0,
