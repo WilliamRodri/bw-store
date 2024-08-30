@@ -51,11 +51,16 @@ const TableViewSales = () => {
         fetchData();
     }, []);
 
+    const formatDate = (dateString: any) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+    };
+
     // Ajuste da filtragem para considerar o valor da venda em diferentes formatos
     const filteredRows = sales.filter(sale =>
         sale.id.toString().includes(searchTerm.toLowerCase()) ||
         sale.total.toString().includes(searchTerm.toLowerCase()) ||
-        new Date(sale.sale_date).toLocaleDateString('pt-BR').includes(searchTerm.toLowerCase()) ||
+        formatDate(sale.sale_date).includes(searchTerm.toLowerCase()) ||
         paymentMethods.find(payment => payment.id === sale.payment_method_id)?.type_payment.toLowerCase().includes(searchTerm.toLowerCase()) || 
         false
     );
