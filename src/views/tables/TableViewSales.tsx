@@ -20,6 +20,11 @@ const TableViewSales = () => {
     const [returnsStock, setReturnsStock] = useState<boolean>(false);
     const router = useRouter();
 
+    const formatDate = (dateString: any) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+    };
+
     const colunasTabelaVendas = [
         { id: 'id', label: '#', minWidth: 66, align: 'left' as const },
         { id: 'total', label: 'TOTAL', minWidth: 100, align: 'left' as const },
@@ -51,11 +56,6 @@ const TableViewSales = () => {
 
         fetchData();
     }, []);
-
-    const formatDate = (dateString: any) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-    };
 
     // Ajuste da filtragem para considerar o valor da venda em diferentes formatos
     const filteredRows = sales.filter(sale =>
@@ -167,7 +167,9 @@ const TableViewSales = () => {
                                 <TableRow>
                                     {colunasTabelaVendas.map((column) => (
                                         <TableCell key={column.id} align={column.align} sx={{ minWidth: column.minWidth }}>
-                                            {column.label}
+                                            {column.id == "sale_date" ? (
+                                                formatDate(column.label)
+                                            ) : (column.label)}
                                         </TableCell>
                                     ))}
                                 </TableRow>
