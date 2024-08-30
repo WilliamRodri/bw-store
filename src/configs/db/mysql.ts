@@ -23,21 +23,21 @@ export async function Mysql(req: any) {
         const { host, port, user, database, password } = clientData.db;
 
         // Estabeleça a conexão com o banco de dados do usuário
-        // const connection = await mysql.createConnection({
-        //     host,
-        //     port: port || 3306,
-        //     user,
-        //     database,
-        //     password,
-        // });
-
         const connection = await mysql.createConnection({
-            host: 'localhost',
-            port: 3306,
-            user: 'root',
-            database: 'pdv_basic',
-            password: 'root',
+            host,
+            port: port || 3306,
+            user,
+            database,
+            password,
         });
+
+        // const connection = await mysql.createConnection({
+        //     host: 'localhost',
+        //     port: 3306,
+        //     user: 'root',
+        //     database: 'pdv_basic',
+        //     password: 'root',
+        // });
 
         return connection;
     } catch (error) {
