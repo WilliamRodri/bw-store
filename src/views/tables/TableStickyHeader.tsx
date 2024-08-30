@@ -179,11 +179,19 @@ const TableStickyHeader = () => {
     }
   };
 
+  function convertLink(link: string) {
+    if (link.includes('dl=0')) {
+      return link.replace('dl=0', 'raw=1');
+    }
+
+    return link;
+  }
+
   const handleSaveEditProduct = async () => {
     const data = {
       name: productToEdit?.name,
       description: productToEdit?.description,
-      image: productToEdit?.image,
+      image: convertLink(productToEdit?.image),
       category_id: productToEdit?.category_id,
       price: productToEdit?.price,
       cost: productToEdit?.cost,
@@ -258,14 +266,6 @@ const TableStickyHeader = () => {
     setErrorsCategory(newErrors);
 
     return !Object.values(newErrors).includes(true);
-  }
-
-  function convertLink(link: string) {
-    if (link.includes('dl=0')) {
-      return link.replace('dl=0', 'raw=1');
-    }
-
-    return link;
   }
 
   const handleSaveAddProduct = async () => {
@@ -706,7 +706,7 @@ const TableStickyHeader = () => {
                 {productToEye?.image ? (
                   <img
                     src={productToEye.image}
-                    alt={'AQUI E PRA TER UMA IMAGEM NÉ?'}
+                    alt={'AQUI E PRA TER UMA IMAGEM NÉ?!'}
                     style={{
                       width: '100%',
                       height: 'auto',
