@@ -270,6 +270,7 @@ const TableClientes = () => {
                 <Button variant="contained" startIcon={<Plus />} style={{ margin: '10px 20px' }} onClick={() => handleOpenAddClientModal()}>
                     CADASTRAR NOVO CLIENTE
                 </Button>
+                <Typography variant="subtitle2" style={{ margin: '10px 20px' }}>{clientes.length} CLIENTES</Typography>
                 {loading ? (
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
                         <CircularProgress />

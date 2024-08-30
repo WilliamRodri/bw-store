@@ -380,6 +380,7 @@ const TableStickyHeader = () => {
         <Button variant="contained" startIcon={<Eye />} style={{ margin: '10px 20px' }} onClick={() => handleOpenEyeCategoriesModal()}>
           VISUALIZAR CATEGORIAS
         </Button>
+        <Typography variant="subtitle2" style={{ margin: '10px 20px' }}>{products.length} PRODUTOS</Typography>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
             <CircularProgress />

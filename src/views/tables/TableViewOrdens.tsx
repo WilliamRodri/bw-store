@@ -158,6 +158,7 @@ const TableViewOrdens = () => {
                 <Button variant="contained" startIcon={<Plus />} style={{ margin: '10px 20px' }} onClick={() => { router.push('/ordens/novo/') }}>
                     GERAR NOVA ORDEM
                 </Button>
+                <Typography variant="subtitle2" style={{ margin: '10px 20px' }}>{orders.length} OS</Typography>
                 {loading ? (
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
                         <CircularProgress />

@@ -9,6 +9,7 @@ const TableViewSales = () => {
     const [sales, setSales] = useState<any[]>([]);
     const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
     const [salesProducts, setSalesProducts] = useState<any[]>([]);
+    const [clients, setClients] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [page, setPage] = useState<number>(0);
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
@@ -43,7 +44,7 @@ const TableViewSales = () => {
 
                 // Dados das Vendas
                 setSales(data.sales);
-                console.log(data.sales[0]);
+                setClients(data.clients);
                 setPaymentMethods(data.paymentMethod);
                 setSalesProducts(data.salesProducts);
                 setProducts(data.products);
@@ -156,6 +157,7 @@ const TableViewSales = () => {
                 <Button variant="contained" startIcon={<Plus />} style={{ margin: '10px 20px' }} onClick={() => { router.push('/vendas/novo/') }}>
                     GERAR NOVA VENDA
                 </Button>
+                <Typography variant="subtitle2" style={{ margin: '10px 20px' }}>{sales.length} VENDAS</Typography>
                 {loading ? (
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
                         <CircularProgress />
@@ -256,8 +258,10 @@ const TableViewSales = () => {
                         DETALHES DA VENDA - {selectedSale?.id}
                     </Typography>
                     <Divider />
-                    <Typography variant="body1"><strong>CLIENTE:</strong> {selectedSale?.client_id}</Typography>
+                    <Typography variant="body1"><strong>CLIENTE:</strong> {clients.find((client: any) => client.id === selectedSale?.client_id)?.name || 'Não definido'}</Typography>
                     <Typography variant="body1"><strong>TOTAL DA VENDA:</strong> {`${parseFloat(selectedSale?.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}</Typography>
+                    <Typography variant="body1"><strong>DESCONTO:</strong> {`${parseFloat(selectedSale?.discount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}</Typography>
+                    <Typography variant="body1"><strong>FORMA DE PAGAMENTO:</strong> {paymentMethods.find((payment: any) => payment.id === selectedSale?.payment_method_id)?.type_payment || 'Não definido'}</Typography>
                     <Typography variant="body1"><strong>DATA DA VENDA:</strong> {formatDate(selectedSale?.sale_date)}</Typography>
                     <Divider />
                     <Box sx={{ marginTop: 2 }}>

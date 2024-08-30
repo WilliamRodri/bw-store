@@ -12,6 +12,7 @@ import { SettingsConsumer, SettingsProvider } from 'src/@core/context/settingsCo
 import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
 import 'react-perfect-scrollbar/dist/css/styles.css'
 import '../../styles/globals.css'
+import { parseCookies } from 'nookies'
 
 type ExtendedAppProps = AppProps & {
   Component: NextPage
@@ -35,6 +36,19 @@ if (themeConfig.routingLoader) {
 const App = (props: ExtendedAppProps) => {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props
   const router = useRouter()
+  const cookies = parseCookies();
+  let clientData;
+
+  if (cookies?.clientData) {
+    try {
+      clientData = JSON.parse(cookies.clientData);
+    } catch (e) {
+      console.error("Erro ao analisar clientData:", e);
+      clientData = { empresa: "BW" };
+    }
+  } else {
+    clientData = { empresa: "BW" };
+  }
 
   // Verifique se a rota atual é a página de impressão
   const isPrintPage = router.pathname.startsWith('/vendas/print/')
@@ -49,7 +63,7 @@ const App = (props: ExtendedAppProps) => {
   return (
     <CacheProvider value={emotionCache}>
       <Head>
-        <title>{`BW Store - ${themeConfig.templateName}`}</title>
+        <title>{`${themeConfig.templateName} / ${clientData?.empresa}`}</title>
         <meta
           name='description'
           content={`${themeConfig.templateName} – Sistema de controle de vendas.`}

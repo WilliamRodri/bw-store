@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CircularProgress, Typography, Box, Select, MenuItem, FormControl, InputLabel, Divider } from "@mui/material";
+import { Card, CardContent, CircularProgress, Typography, Box, Select, MenuItem, FormControl, InputLabel, Divider, Button, TextField } from "@mui/material";
 
 const TableViewRelatorioPrincipal = () => {
     const [filter, setFilter] = useState<number>(0);
     const [data, setData] = useState<any>(null);
     const [dataGeral, setDataGeral] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [startDate, setStartDate] = useState<string>("");
+    const [endDate, setEndDate] = useState<string>("");
 
     const valoresFiltro = [
         { nome: "HOJE", id: 0 },
@@ -14,16 +16,21 @@ const TableViewRelatorioPrincipal = () => {
         { nome: "ESTE MÊS", id: 3 },
         { nome: "ESTE ANO", id: 4 },
         { nome: "TODO PERÍODO", id: 5 },
+        { nome: "PERSONALIZADO", id: 6 },
     ];
 
     const handleFilterChange = (event: any) => {
         setFilter(event.target.value);
     };
 
-    const fetchData = async (filterId: number) => {
+    const fetchData = async (filterId: number, startDate = "", endDate = "") => {
         setLoading(true);
         try {
-            const response = await fetch(`/api/dashboard/${filterId}`);
+            let url = `/api/dashboard/${filterId}`;
+            if (filterId === 6) {
+                url += `?startDate=${startDate}&endDate=${endDate}`;
+            }
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error("Erro ao buscar os dados");
             }
@@ -37,7 +44,7 @@ const TableViewRelatorioPrincipal = () => {
     };
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchDataGeral = async () => {
             try {
                 setLoading(true);
                 const response = await fetch('/api/dashboard/relatorioGeral');
@@ -55,12 +62,20 @@ const TableViewRelatorioPrincipal = () => {
             }
         }
 
-        fetchData();
+        fetchDataGeral();
     }, []);
 
     useEffect(() => {
-        fetchData(filter);
+        if (filter !== 6) {
+            fetchData(filter);
+        }
     }, [filter]);
+
+    const handleApplyCustomFilter = () => {
+        if (filter === 6) {
+            fetchData(filter, startDate, endDate);
+        }
+    };
 
     return (
         <Box sx={{ padding: "10px" }}>
@@ -79,6 +94,34 @@ const TableViewRelatorioPrincipal = () => {
                     ))}
                 </Select>
             </FormControl>
+
+            {filter === 6 && (
+                <Box sx={{ mb: 4 }}>
+                    <TextField
+                        label="Data de Início"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        sx={{ mr: 2 }}
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                    />
+                    <TextField
+                        label="Data Final"
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        sx={{ mr: 2 }}
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                    />
+                    <Button variant="contained" onClick={handleApplyCustomFilter}>
+                        Aplicar Filtro
+                    </Button>
+                </Box>
+            )}
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                 {loading ? (

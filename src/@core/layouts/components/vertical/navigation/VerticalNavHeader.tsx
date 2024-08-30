@@ -14,6 +14,7 @@ import { Settings } from 'src/@core/context/settingsContext'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
+import { parseCookies } from 'nookies'
 
 interface Props {
   hidden: boolean
@@ -48,6 +49,19 @@ const StyledLink = styled('a')({
 })
 
 const VerticalNavHeader = (props: Props) => {
+  const cookies = parseCookies();
+  let clientData;
+
+  if (cookies?.clientData) {
+    try {
+      clientData = JSON.parse(cookies.clientData);
+    } catch (e) {
+      console.error("Erro ao analisar clientData:", e);
+      clientData = { empresa: "BW" };
+    }
+  } else {
+    clientData = { empresa: "BW" };
+  }
   // ** Props
   const { verticalNavMenuBranding: userVerticalNavMenuBranding } = props
 
@@ -58,8 +72,9 @@ const VerticalNavHeader = (props: Props) => {
       ) : (
         <Link href='/' passHref>
           <StyledLink>
-            <HeaderTitle variant='h6' sx={{ ml: 3 }}>
-              {themeConfig.templateName}
+            <HeaderTitle variant='subtitle1' sx={{ ml: 3, mt: 3 }}>
+              {themeConfig.templateName} / {clientData.empresa}
+              <Typography variant='subtitle2'>Acesso de {clientData.nome_cliente}</Typography>
             </HeaderTitle>
           </StyledLink>
         </Link>
