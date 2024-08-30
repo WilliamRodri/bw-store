@@ -14,9 +14,10 @@ const TableNovaVenda = () => {
     const [visibleProductsCount, setVisibleProductsCount] = useState<number>(10);
     const router = useRouter();
 
+    // Função para obter a data atual no formato DD/MM/YYYY
     const getCurrentDate = () => {
         const now = new Date();
-        return now.toISOString().split('T')[0];
+        return now.toLocaleDateString('pt-BR'); // Formato DD/MM/YYYY
     };
 
     const [newSale, setNewSale] = useState<any>({
@@ -127,9 +128,13 @@ const TableNovaVenda = () => {
 
     const handleSubmitNewSale = async () => {
         if (validateFields()) {
+            // Converter a data do formato DD/MM/YYYY para YYYY-MM-DD para enviar para o servidor
+            const [day, month, year] = newSale.saleDate.split('/');
+            const formattedDate = `${year}-${month}-${day}`;
+
             const combinedData = {
                 client: newSale.clientId,
-                date: newSale.saleDate,
+                date: formattedDate,
                 paymentMethod: newSale.paymentMethodId,
                 items: newSale.products.map((product: any) => ({
                     product_id: product.id,
@@ -167,6 +172,7 @@ const TableNovaVenda = () => {
             alert("Por favor, preencha todos os campos obrigatórios.");
         }
     }
+
     console.error(errors);
     return (
         <Fragment>
@@ -212,8 +218,8 @@ const TableNovaVenda = () => {
                             <TextField
                                 type="date"
                                 label="DATA DA VENDA"
-                                value={newSale.saleDate}
-                                onChange={(e) => setNewSale({ ...newSale, saleDate: e.target.value })}
+                                value={newSale.saleDate.split('/').reverse().join('-')} // Converte DD/MM/YYYY para YYYY-MM-DD para o campo de data
+                                onChange={(e) => setNewSale({ ...newSale, saleDate: e.target.value.split('-').reverse().join('/') })}
                                 fullWidth
                                 margin="normal"
                                 InputLabelProps={{
@@ -238,73 +244,45 @@ const TableNovaVenda = () => {
                                             checked={newSale.products.some((p: any) => p.id === product.id)}
                                             onChange={() => handleProductSelection(product)}
                                         />
-                                        <Typography>{product.name} - R$ {parseFloat(product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))}</Typography>
+                                        <Typography variant="body1">{product.name} - R$ { product?.price }</Typography>
                                     </Box>
-                                    {newSale.products.some((p: any) => p.id === product.id) && (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <TextField
-                                            label="Quantidade"
                                             type="number"
                                             value={newSale.products.find((p: any) => p.id === product.id)?.quantity || 1}
-                                            onChange={(e) => handleQuantityChange(product.id, parseInt(e.target.value))}
-                                            sx={{ width: '100px' }}
+                                            onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
+                                            inputProps={{ min: 1 }}
+                                            size="small"
                                         />
-                                    )}
+                                    </Box>
                                 </Box>
                             ))}
                         </Box>
-
                         {filteredProducts.length > visibleProductsCount && (
-                            <Button onClick={loadMoreProducts} variant="contained" color="primary" sx={{ marginTop: '10px' }}>
-                                Carregar mais
+                            <Button onClick={loadMoreProducts} variant="outlined" color="primary" sx={{ marginTop: '10px' }}>
+                                Carregar Mais
                             </Button>
                         )}
-
-                        <Typography variant="h6" sx={{ marginTop: '20px' }}>PRODUTOS SELECIONADOS</Typography>
-                        <Box sx={{ marginTop: '10px', padding: '10px', borderRadius: '4px' }}>
-                            {newSale.products.length > 0 ? (
-                                newSale.products.map((product: any, index: any) => (
-                                    <Box key={index} sx={{ border: '1px solid #DADADA', padding: "5px", display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3, marginTop: 3, borderRadius: '4px' }}>
-                                        <Typography>
-                                            {product.name} - R$ {parseFloat(product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))} - QTD: {product.quantity || 1}
-                                        </Typography>
-                                        <IconButton color="error" onClick={() => {
-                                            setNewSale((prevSale: any) => ({
-                                                ...prevSale,
-                                                products: prevSale.products.filter((_: any, i: number) => i !== index),
-                                            }));
-                                        }}>
-                                            <DeleteCircleOutline />
-                                        </IconButton>
-                                    </Box>
-                                ))
-                            ) : (
-                                <Typography>SEM PRODUTOS SELECIONADOS</Typography>
-                            )}
-                        </Box>
                         <Divider />
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                            <Typography variant="h6">Subtotal: R$ {newSale.subtotal.toFixed(2)}</Typography>
                             <TextField
-                                label="DESCONTO"
                                 type="number"
+                                label="DESCONTO"
                                 value={newSale.discount}
-                                onChange={(e) => setNewSale({ ...newSale, discount: parseFloat(e.target.value) || 0 })}
-                                fullWidth
-                                margin="normal"
-                            />
-                            <TextField
-                                label="SUBTOTAL"
-                                value={newSale.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                fullWidth
-                                margin="normal"
+                                onChange={(e) => setNewSale({ ...newSale, discount: Number(e.target.value) })}
                                 InputProps={{
-                                    readOnly: true,
+                                    startAdornment: (
+                                        <Typography sx={{ marginRight: '10px' }}>R$</Typography>
+                                    ),
                                 }}
                             />
                         </Box>
-                        <Divider />
-                        <Button variant="contained" color="primary" onClick={handleSubmitNewSale}>
-                            FINALIZAR VENDA <CartOutline sx={{ marginLeft: "10px" }} />
-                        </Button>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                            <Button onClick={handleSubmitNewSale} variant="contained" color="primary">
+                                GERAR VENDA
+                            </Button>
+                        </Box>
                     </Box>
                 )}
             </Paper>
