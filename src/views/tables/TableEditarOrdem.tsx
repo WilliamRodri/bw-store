@@ -8,6 +8,7 @@ const TableEditarOrdem = ({ id }: { id: any }) => {
     const [orderToEdit, setOrderToEdit] = useState<any>({
         client_id: '',
         product: '',
+        price: 0,
         status: '',
         order_date: '',
         description: '',
@@ -31,6 +32,10 @@ const TableEditarOrdem = ({ id }: { id: any }) => {
         {
             id: 2,
             text: "PENDENTE"
+        },
+        {
+            id: 3,
+            text: "FINALIZADO"
         }
     ];
 
@@ -70,6 +75,7 @@ const TableEditarOrdem = ({ id }: { id: any }) => {
 
     const [errorsEditOrder, setErrorsEditOrder] = useState<any>({
         client_id: false,
+        price: false,
         payment: false,
         order_date: false,
         product: false,
@@ -80,10 +86,11 @@ const TableEditarOrdem = ({ id }: { id: any }) => {
     const validateFieldsEditOrder = () => {
         const newErrors: any = {
             client_id: orderToEdit.client_id === "",
+            price: orderToEdit.price === "",
             payment: orderToEdit.payment === "",
             order_date: orderToEdit.order_date === "",
             product: orderToEdit.product === "",
-            status: orderToEdit.status === ""
+            status: orderToEdit.status === "" || orderToEdit.status === "50"
         };
     
         setErrorsEditOrder(newErrors);
@@ -101,11 +108,13 @@ const TableEditarOrdem = ({ id }: { id: any }) => {
                 orderToEdit.status == "0" ? "ATIVO" :
                 orderToEdit.status == "1" ? "CANCELADO" :
                 orderToEdit.status == "2" ? "PENDENTE" :
+                orderToEdit.status == "3" ? "FINALIZADO" :
                 "0";
 
             const combinedData = {
                 client_id: orderToEdit.client_id,
                 product: orderToEdit.product,
+                price: orderToEdit.price,
                 status: status,
                 order_date: formatDateToMySQL(orderToEdit.order_date),
                 description: orderToEdit.description,
@@ -169,7 +178,7 @@ const TableEditarOrdem = ({ id }: { id: any }) => {
                                     native: true,
                                 }}
                             >
-                                <option value="">SELECIONE UM CLIENTE</option>
+                                <option value="" disabled>SELECIONE UM CLIENTE</option>
                                 {clients.map((client: any) => (
                                     <option key={client.id} value={client.id}>{client.name}</option>
                                 ))}
@@ -189,7 +198,7 @@ const TableEditarOrdem = ({ id }: { id: any }) => {
                                     native: true,
                                 }}
                             >
-                                <option value="">SELECIONE UMA FORMA DE PAGAMENTO</option>
+                                <option value="" disabled>SELECIONE UMA FORMA DE PAGAMENTO</option>
                                 {paymentMethods.map(paymentMethod => (
                                     <option key={paymentMethod.id} value={paymentMethod.id}>{paymentMethod.type_payment}</option>
                                 ))}
@@ -208,26 +217,37 @@ const TableEditarOrdem = ({ id }: { id: any }) => {
                             />
                         </Box>
                         <Divider />
-                        <TextField
-                            label={"STATUS"}
-                            required
-                            select
-                            value={orderToEdit.status}
-                            onChange={(e) => setOrderToEdit({ ...orderToEdit, status: e.target.value })}
-                            fullWidth
-                            margin="normal"
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            <option value="">SELECIONE UM STATUS</option>
-                            {statusOrder.map((status: any) => (
-                                <option key={status.id} value={status.id}>{status.text}</option>
-                            ))}
-                        </TextField>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                            <TextField
+                                label={"STATUS"}
+                                required
+                                select
+                                value={orderToEdit.status}
+                                onChange={(e) => setOrderToEdit({ ...orderToEdit, status: e.target.value })}
+                                fullWidth
+                                margin="normal"
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                SelectProps={{
+                                    native: true,
+                                }}
+                            >
+                                <option value="50" disabled>SELECIONE UM STATUS</option>
+                                {statusOrder.map((status: any) => (
+                                    <option key={status.id} value={status.id}>{status.text}</option>
+                                ))}
+                            </TextField>
+                            <TextField
+                                required
+                                label="PREÇO"
+                                type="number"
+                                value={orderToEdit.price}
+                                onChange={(e) => setOrderToEdit({ ...orderToEdit, price: e.target.value })}
+                                fullWidth
+                                margin="normal"
+                            />
+                        </Box>
                         <Divider />
                         <TextField
                             required

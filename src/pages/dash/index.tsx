@@ -7,7 +7,7 @@ const dash = () => {
         <>
             <Grid item xs={12}>
                 <Card>
-                    <CardHeader title='RELATÓRIO DE VENDAS E OUTROS' titleTypographyProps={{ variant: 'h3' }} />
+                    <CardHeader title='VISÃO GERAL' titleTypographyProps={{ variant: 'h3' }} />
                     <TableViewRelatorioPrincipal />
                 </Card>
             </Grid>

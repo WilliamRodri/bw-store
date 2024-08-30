@@ -192,7 +192,7 @@ const TableNovaVenda = () => {
                                     native: true,
                                 }}
                             >
-                                <option value="">SELECIONE UM CLIENTE</option>
+                                <option value="" disabled>SELECIONE UM CLIENTE</option>
                                 {clients.map((client: any) => (
                                     <option key={client.id} value={client.id}>{client.name}</option>
                                 ))}
@@ -207,7 +207,7 @@ const TableNovaVenda = () => {
                                     native: true,
                                 }}
                             >
-                                <option value="">SELECIONE UMA FORMA DE PAGAMENTO</option>
+                                <option value="" disabled>SELECIONE UMA FORMA DE PAGAMENTO</option>
                                 {paymentMethods.map(paymentMethod => (
                                     <option key={paymentMethod.id} value={paymentMethod.id}>{paymentMethod.type_payment}</option>
                                 ))}

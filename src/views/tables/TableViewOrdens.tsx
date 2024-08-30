@@ -1,5 +1,5 @@
 import { Box, Button, CircularProgress, Divider, IconButton, Modal, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography } from "@mui/material";
-import { DeleteEmpty, ExportVariant, Eye, Pencil, Plus } from "mdi-material-ui";
+import { Check, DeleteEmpty, ExportVariant, Eye, Pencil, Plus } from "mdi-material-ui";
 import { useRouter } from "next/router";
 import { parseCookies } from "nookies";
 import { Fragment, useEffect, useState } from "react";
@@ -21,7 +21,9 @@ const TableViewOrdens = () => {
     const [openViewOrder, setOpenViewOrder] = useState<boolean>(false);
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
     const [openConfirmModal, setOpenConfirmModal] = useState<boolean>(false);
+    const [openCheckModal, setOpenCheckModal] = useState<boolean>(false);
     const [selectedDeleteOrder, setSelectedDeleteOrder] = useState<any>(null);
+    const [selectedCheckOrder, setSelectedCheckOrder] = useState<any>(null);
 
     const [orders, setOrders] = useState<any>([]);
     const [clients, setClients] = useState<any[]>([]);
@@ -29,7 +31,7 @@ const TableViewOrdens = () => {
     const router = useRouter();
     const cookies = parseCookies();
     const clientDataRaw = cookies.clientData;
-    
+
     let clientData = {};
     if (clientDataRaw) {
         try {
@@ -90,9 +92,14 @@ const TableViewOrdens = () => {
         setOpenConfirmModal(true);
     }
 
+    const handleOpenConfirmCheckModal = (orderId: any) => {
+        setSelectedCheckOrder(orderId);
+        setOpenCheckModal(true);
+    }
+
     const handleDeleteOrder = async () => {
         if (selectedDeleteOrder == null) return;
-        
+
         try {
             const response = await fetch(`/api/delete/ordens/${selectedDeleteOrder}`, {
                 method: 'DELETE',
@@ -113,7 +120,31 @@ const TableViewOrdens = () => {
         }
     }
 
-    return(
+    const handleCheckOrder = async () => {
+        if (selectedCheckOrder == null) return;
+
+        try {
+            const response = await fetch(`/api/update/orden/${selectedCheckOrder}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: "FINALIZADO" })
+            });
+
+            if (response.ok) {
+                location.replace('/ordens')
+            } else {
+                console.error('Failed to checking the order');
+            }
+        } catch (error) {
+            console.error('Error checking the order:', error);
+        } finally {
+            setOpenCheckModal(false);
+        }
+    }
+
+    return (
         <Fragment>
             <Paper sx={{ width: '100%', overflow: 'hidden' }}>
                 <TextField
@@ -163,42 +194,65 @@ const TableViewOrdens = () => {
                                                             column.id === 'client_id' ? (
                                                                 clients.find((client: any) => client.id === order.client_id)?.name || 'Cliente não encontrado'
                                                             )
-                                                            :
-                                                            column.id === 'product' ? (value)
-                                                            :
-                                                            column.id === 'status' ?
-                                                                (order?.status === "ATIVO" ?
-                                                                (<div style={{ color: "#80FF7C" }}>{value}</div>) :
-                                                                order?.status === "PENDENTE" ?
-                                                                (<div style={{ color: "yellow" }}>{value}</div>) :
-                                                                order?.status === "CANCELADO" ?
-                                                                (<div style={{ color: "#FF7C7C" }}>{value}</div>) :
-                                                                (<div>{value}</div>)
-                                                            )
-                                                            :
-                                                            column.id === 'order_date' ? new Date(value).toLocaleDateString('pt-BR')
-                                                            :
-                                                            column.id === 'actions' ? (
-                                                                <Fragment>
-                                                                    <IconButton onClick={() => handleOpenViewOrder(order)}>
-                                                                        <Eye />
-                                                                    </IconButton>
-                                                                    {order.status !== "CANCELADO" ? (
-                                                                        <>
-                                                                            <IconButton onClick={() => { router.push(`/ordens/editar/${order.id}`) }}>
-                                                                                <Pencil />
-                                                                            </IconButton>
-                                                                            <IconButton onClick={() => handleOpenConfirmModal(order.id)}>
-                                                                                <DeleteEmpty />
-                                                                            </IconButton>
-                                                                            <IconButton onClick={() => exportPdf(order, clientData)}>
-                                                                                <ExportVariant />
-                                                                            </IconButton>
-                                                                        </>
-                                                                    ) : ('')}
-                                                                </Fragment>
-                                                            )
-                                                            : value
+                                                                :
+                                                                column.id === 'product' ? (value)
+                                                                    :
+                                                                    column.id === 'status' ?
+                                                                        (order?.status === "ATIVO" ?
+                                                                            (<div style={{ color: "yellow" }}>{value}</div>) :
+                                                                            order?.status === "PENDENTE" ?
+                                                                                (<div style={{ color: "white" }}>{value}</div>) :
+                                                                                order?.status === "CANCELADO" ?
+                                                                                    (<div style={{ color: "#FF7C7C" }}>{value}</div>) :
+                                                                                    order?.status === "FINALIZADO" ?
+                                                                                    (<div style={{ color: "#80FF7C" }}>{value}</div>) :
+                                                                                    (<div>{value}</div>)
+                                                                        )
+                                                                        :
+                                                                        column.id === 'order_date' ? new Date(value).toLocaleDateString('pt-BR')
+                                                                            :
+                                                                            column.id === 'actions' ? (
+                                                                                <Fragment>
+                                                                                    <IconButton onClick={() => handleOpenViewOrder(order)}>
+                                                                                        <Eye />
+                                                                                    </IconButton>
+                                                                                    
+                                                                                    {order?.status === "FINALIZADO" && (
+                                                                                        <>
+                                                                                            <IconButton onClick={() => router.push(`/ordens/editar/${order.id}`)}>
+                                                                                                <Pencil />
+                                                                                            </IconButton>
+                                                                                            <IconButton onClick={() => exportPdf(order, clientData)}>
+                                                                                                <ExportVariant />
+                                                                                            </IconButton>
+                                                                                        </>
+                                                                                    )}
+
+                                                                                    {order?.status === "CANCELADO" && (
+                                                                                        <IconButton onClick={() => exportPdf(order, clientData)}>
+                                                                                            <ExportVariant />
+                                                                                        </IconButton>
+                                                                                    )}
+
+                                                                                    {order?.status !== "CANCELADO" && order?.status !== "FINALIZADO" && (
+                                                                                        <>
+                                                                                            <IconButton onClick={() => router.push(`/ordens/editar/${order.id}`)}>
+                                                                                                <Pencil />
+                                                                                            </IconButton>
+                                                                                            <IconButton onClick={() => handleOpenConfirmCheckModal(order.id)}>
+                                                                                                <Check />
+                                                                                            </IconButton>
+                                                                                            <IconButton onClick={() => handleOpenConfirmModal(order.id)}>
+                                                                                                <DeleteEmpty />
+                                                                                            </IconButton>
+                                                                                            <IconButton onClick={() => exportPdf(order, clientData)}>
+                                                                                                <ExportVariant />
+                                                                                            </IconButton>
+                                                                                        </>
+                                                                                    )}
+                                                                                </Fragment>
+                                                                            )
+                                                                                : value
                                                         }
                                                     </TableCell>
                                                 );
@@ -239,7 +293,8 @@ const TableViewOrdens = () => {
                         marginTop: "5%",
                         borderRadius: 1,
                         maxHeight: '80vh',
-                        overflowY: 'auto'
+                        overflowY: 'auto',
+                        gap: "20px"
                     }}
                 >
                     <Typography id="modal-title" variant="h6" component="h2">
@@ -264,6 +319,14 @@ const TableViewOrdens = () => {
                         sx={{ marginBottom: 2 }}
                     />
                     <TextField
+                        label="PREÇO"
+                        fullWidth
+                        multiline
+                        variant="outlined"
+                        value={`R$ ${parseFloat(selectedOrder?.price)}`}
+                        sx={{ marginBottom: 2 }}
+                    />
+                    <TextField
                         label="STATUS"
                         fullWidth
                         multiline
@@ -279,7 +342,7 @@ const TableViewOrdens = () => {
                         value={new Date(selectedOrder?.order_date).toLocaleDateString('pt-BR')}
                         sx={{ marginBottom: 2 }}
                     />
-                    
+
                     <TextField
                         label="DESCRIÇÃO"
                         fullWidth
@@ -297,9 +360,9 @@ const TableViewOrdens = () => {
                             }
                         }}
                         InputProps={{
-                            sx: { 
-                                height: 'auto', 
-                                overflowY: 'auto' 
+                            sx: {
+                                height: 'auto',
+                                overflowY: 'auto'
                             }
                         }}
                     />
@@ -334,9 +397,9 @@ const TableViewOrdens = () => {
                         variant="outlined"
                         value={
                             selectedOrder?.payment_id == 4 ? ('PIX') :
-                            selectedOrder?.payment_id == 2 ? ('CARTÃO') :
-                            selectedOrder?.payment_id == 1 ? ('DINHEIRO') :
-                            ''
+                                selectedOrder?.payment_id == 2 ? ('CARTÃO') :
+                                    selectedOrder?.payment_id == 1 ? ('DINHEIRO') :
+                                        ''
                         }
                         sx={{ marginBottom: 2 }}
                     />
@@ -376,7 +439,7 @@ const TableViewOrdens = () => {
                         Confirmar Cancelamento
                     </Typography>
                     <Typography variant="body1" sx={{ marginTop: 2 }}>
-                        Tem certeza de que deseja cancelar a ordem de serviço?
+                        Tem certeza de que deseja cancelar a OS?
                     </Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
                         <Button onClick={() => setOpenConfirmModal(false)} sx={{ marginRight: 1 }}>
@@ -384,6 +447,30 @@ const TableViewOrdens = () => {
                         </Button>
                         <Button variant="contained" color="error" onClick={handleDeleteOrder}>
                             Prosseguir
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+
+            <Modal
+                open={openCheckModal}
+                onClose={() => setOpenCheckModal(false)}
+                aria-labelledby="confirm-modal-title"
+                aria-describedby="confirm-modal-description"
+            >
+                <Box sx={{ width: 400, bgcolor: 'background.paper', padding: 4, margin: 'auto', marginTop: '20%', borderRadius: 1 }}>
+                    <Typography id="confirm-modal-title" variant="h6" component="h2">
+                        Confirmar Finalização
+                    </Typography>
+                    <Typography variant="body1" sx={{ marginTop: 2 }}>
+                        Tem certeza de que deseja finalizar a OS?
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
+                        <Button onClick={() => setOpenCheckModal(false)} sx={{ marginRight: 1 }}>
+                            Cancelar
+                        </Button>
+                        <Button variant="contained" color="primary" onClick={handleCheckOrder}>
+                            Finalizar
                         </Button>
                     </Box>
                 </Box>

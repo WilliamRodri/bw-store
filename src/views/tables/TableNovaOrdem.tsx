@@ -18,8 +18,12 @@ const TableNovaOrdem = () => {
         {
             id: 2,
             text: "PENDENTE"
+        },
+        {
+            id: 3,
+            text: "FINALIZADO"
         }
-    ]
+    ];
 
     const getCurrentDate = () => {
         const today = new Date();
@@ -32,6 +36,7 @@ const TableNovaOrdem = () => {
     const [newOrder, setNewOrder] = useState<any>({
         client_id: '1',
         product: '',
+        price: 0,
         status: '0',
         order_date: getCurrentDate(),
         description: '',
@@ -66,6 +71,7 @@ const TableNovaOrdem = () => {
 
     const [errorsAddOrder, setErrorsAddOrder] = useState({
         client_id: false,
+        price: false,
         payment: false,
         order_date: false,
         product: false,
@@ -76,6 +82,7 @@ const TableNovaOrdem = () => {
     const validateFieldsAddOrder = () => {
         const newErrors = {
             client_id: newOrder.client_id === "",
+            price: newOrder.price === "",
             payment: newOrder.payment === "",
             order_date: newOrder.order_date === "",
             product: newOrder.product === "",
@@ -94,11 +101,13 @@ const TableNovaOrdem = () => {
                 newOrder.status == "0" ? "ATIVO" :
                 newOrder.status == "1" ? "CANCELADO" :
                 newOrder.status == "2" ? "PENDENTE" :
+                newOrder.status == "3" ? "FINALIZADO" :
                 "0";
             const combinedData = {
                 id: randomCode,
                 client_id: newOrder.client_id,
                 product: newOrder.product,
+                price: newOrder.price,
                 status: status,
                 order_date: newOrder.order_date,
                 description: newOrder.description,
@@ -161,7 +170,7 @@ const TableNovaOrdem = () => {
                                     native: true,
                                 }}
                             >
-                                <option value="">SELECIONE UM CLIENTE</option>
+                                <option value="" disabled>SELECIONE UM CLIENTE</option>
                                 {clients.map((client: any) => (
                                     <option key={client.id} value={client.id}>{client.name}</option>
                                 ))}
@@ -178,7 +187,7 @@ const TableNovaOrdem = () => {
                                     native: true,
                                 }}
                             >
-                                <option value="">SELECIONE UMA FORMA DE PAGAMENTO</option>
+                                <option value="" disabled>SELECIONE UMA FORMA DE PAGAMENTO</option>
                                 {paymentMethods.map(paymentMethod => (
                                     <option key={paymentMethod.id} value={paymentMethod.id}>{paymentMethod.type_payment}</option>
                                 ))}
@@ -197,23 +206,34 @@ const TableNovaOrdem = () => {
                             />
                         </Box>
                         <Divider />
-                        <TextField
-                            label={"STATUS"}
-                            required
-                            select
-                            value={newOrder.status}
-                            onChange={(e) => setNewOrder({ ...newOrder, status: e.target.value })}
-                            fullWidth
-                            margin="normal"
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            <option value="">SELECIONE UM STATUS</option>
-                            {statusOrder.map((status: any) => (
-                                <option key={status.id} value={status.id}>{status.text}</option>
-                            ))}
-                        </TextField>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                            <TextField
+                                label={"STATUS"}
+                                required
+                                select
+                                value={newOrder.status}
+                                onChange={(e) => setNewOrder({ ...newOrder, status: e.target.value })}
+                                fullWidth
+                                margin="normal"
+                                SelectProps={{
+                                    native: true,
+                                }}
+                            >
+                                <option value="" disabled>SELECIONE UM STATUS</option>
+                                {statusOrder.map((status: any) => (
+                                    <option key={status.id} value={status.id}>{status.text}</option>
+                                ))}
+                            </TextField>
+                            <TextField
+                                required
+                                label="PREÇO"
+                                type="number"
+                                value={newOrder.price}
+                                onChange={(e) => setNewOrder({ ...newOrder, price: e.target.value })}
+                                fullWidth
+                                margin="normal"
+                            />
+                        </Box>
                         <Divider />
                         <TextField
                             required
