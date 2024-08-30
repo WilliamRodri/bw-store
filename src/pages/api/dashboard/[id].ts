@@ -87,7 +87,6 @@ const generateReport = async (req: NextApiRequest, filterId: number) => {
         `;
 
         const [sales]: any = await mysql.execute(salesQuery, [startDate, endDate]);
-        console.log(`Vendas encontradas: ${sales.length}`);
 
         const [totalVendas]: any = await mysql.execute(totalSalesQuery, [startDate, endDate]);
         const [qtdVendas]: any = await mysql.execute(totalSalesCountQuery, [startDate, endDate]);

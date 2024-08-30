@@ -20,6 +20,7 @@ const TableStickyHeader = () => {
   const [productToEdit, setProductToEdit] = useState<any>({
     name: '',
     description: '',
+    image: '',
     category_id: '',
     price: '',
     cost: '',
@@ -29,6 +30,7 @@ const TableStickyHeader = () => {
   const [productToAdd, setProductToAdd] = useState<any>({
     name: '',
     description: '',
+    image: '',
     category_id: '',
     price: '',
     cost: '',
@@ -38,6 +40,7 @@ const TableStickyHeader = () => {
   const [productToEye, setProductToEye] = useState<any>({
     name: '',
     description: '',
+    image: '',
     category_id: '',
     price: '',
     cost: '',
@@ -180,6 +183,7 @@ const TableStickyHeader = () => {
     const data = {
       name: productToEdit?.name,
       description: productToEdit?.description,
+      image: productToEdit?.image,
       category_id: productToEdit?.category_id,
       price: productToEdit?.price,
       cost: productToEdit?.cost,
@@ -256,6 +260,14 @@ const TableStickyHeader = () => {
     return !Object.values(newErrors).includes(true);
   }
 
+  function convertLink(link: string) {
+    if (link.includes('dl=0')) {
+      return link.replace('dl=0', 'raw=1');
+    }
+
+    return link;
+  }
+
   const handleSaveAddProduct = async () => {
     if (validateFields()) {
       const data = await productToAdd;
@@ -267,7 +279,8 @@ const TableStickyHeader = () => {
         price: parseFloat(data.price),
         stock: data.stock,
         cost: parseFloat(data.cost),
-        status: 'visible'
+        status: 'visible',
+        image: convertLink(data.image)
       };
       
       try {
@@ -402,7 +415,7 @@ const TableStickyHeader = () => {
                   <TableRow>
                     <TableCell colSpan={colunasTabelaProdutos.length}>
                       <Typography variant="body2" sx={{ marginTop: 2 }}>
-                        <strong>AINDA NÃO FOI REALIZADA NENHUMA VENDA!</strong>
+                        <strong>AINDA NÃO FOI CADASTRADO NENHUM PRODUTO!</strong>
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -471,7 +484,7 @@ const TableStickyHeader = () => {
         )}
       </Paper>
 
-    {/* MODAL DE VISUALIZAÇÃO DE CONFIRMAÇÃO DE DELETAR PRODUTO */}
+      {/* MODAL DE VISUALIZAÇÃO DE CONFIRMAÇÃO DE DELETAR PRODUTO */}
       <Modal
         open={openConfirmModalDelete}
         onClose={handleCloseConfirmModalDelete}
@@ -497,7 +510,7 @@ const TableStickyHeader = () => {
         </Box>
       </Modal>
 
-        {/* MODAL PARA EDITAR PRODUTO */}
+      {/* MODAL PARA EDITAR PRODUTO */}
       <Modal
         open={openEditProductModal}
         onClose={handleCloseConfirmModalEdit}
@@ -528,6 +541,11 @@ const TableStickyHeader = () => {
             label="DESCRIÇÃO"
             value={productToEdit.description}
             onChange={(e) => setProductToEdit({ ...productToEdit, description: e.target.value })}
+          />
+          <TextField
+            label="LINK DA IMAGEM"
+            value={productToEdit.image}
+            onChange={(e) => setProductToEdit({ ...productToEdit, image: e.target.value })}
           />
           <FormControl fullWidth margin="normal">
             <InputLabel>CATEGORIA</InputLabel>
@@ -569,7 +587,7 @@ const TableStickyHeader = () => {
         </Box>
       </Modal>
       
-        {/* MODAL PARA CADASTRAR PRODUTO */}
+      {/* MODAL PARA CADASTRAR PRODUTO */}
       <Modal
         open={openAddProductModal}
         onClose={handleCloseAddProductModal}
@@ -599,6 +617,10 @@ const TableStickyHeader = () => {
           <TextField
             label="DESCRIÇÃO"
             onChange={(e) => setProductToAdd({ ...productToAdd, description: e.target.value })}
+          />
+          <TextField
+            label="LINK DA IMAGEM"
+            onChange={(e) => setProductToAdd({ ...productToAdd, image: e.target.value })}
           />
           <FormControl fullWidth margin="normal" required>
             <InputLabel>CATEGORIA</InputLabel>
@@ -642,60 +664,138 @@ const TableStickyHeader = () => {
       </Modal>
 
         {/* MODAL PARA VISUALIZAR DETALHES DE PRODUTO */}
-      <Modal
-        open={openEyeProductModal}
-        onClose={handleCloseEyeProductModal}
-        aria-labelledby="edit-modal-title"
-        aria-describedby="edit-modal-description"
-      >
-        <Box sx={{
-          width: 400,
-          bgcolor: 'background.paper',
-          padding: 4,
-          margin: 'auto',
-          marginTop: '5%',
-          borderRadius: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-        }}>
-          <Typography id="edit-modal-title" variant="h6" component="h2">
-            VISUALIZANDO PRODUTO
-          </Typography>
-          <Divider />
-          <TextField
-            label="NOME"
-            value={productToEye?.name}
-          />
-          <TextField
-            label="DESCRIÇÃO"
-            value={productToEye?.description}
-          />
-          <TextField
-            label="CATEGORIA"
-            value={
-              categories.find((category) => category.id === productToEye.category_id)?.name || ""
-            }
-          />
-          <TextField
-            label="PREÇO"
-            value={productToEye?.price}
-          />
-          <TextField
-            label="CUSTO"
-            value={productToEye?.cost}
-          />
-          <TextField
-            label="ESTOQUE"
-            value={productToEye?.stock}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-            <Button onClick={handleCloseEyeProductModal} sx={{ marginLeft: 2 }}>
-              FECHAR
-            </Button>
+        <Modal
+          open={openEyeProductModal}
+          onClose={handleCloseEyeProductModal}
+          aria-labelledby="edit-modal-title"
+          aria-describedby="edit-modal-description"
+        >
+          <Box sx={{
+            width: '90%',
+            maxWidth: 600,
+            bgcolor: 'background.paper',
+            padding: 4,
+            margin: 'auto',
+            marginTop: '5%',
+            borderRadius: 1,
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+            {/* Título da Modal */}
+            <Typography id="edit-modal-title" variant="h6" component="h2" align="center" gutterBottom>
+              VISUALIZANDO PRODUTO
+            </Typography>
+            <Divider />
+
+            {/* Layout para Imagem e Informações */}
+            <Box sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 2,
+              marginTop: 2,
+            }}>
+              <Box sx={{
+                flex: '1 1 200px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflow: 'hidden',
+                padding: 1,
+                marginBottom: { xs: 2, sm: 0 },
+              }}>
+                {productToEye?.image ? (
+                  <img
+                    src={productToEye.image}
+                    alt={'AQUI E PRA TER UMA IMAGEM NÉ?'}
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  <Typography variant="body2" color="textSecondary">
+                    Sem imagem cadastrada!
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Informações do Produto */}
+              <Box sx={{
+                flex: '1 1 300px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+              }}>
+                <TextField
+                  label="NOME"
+                  value={productToEye?.name}
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+                <TextField
+                  label="DESCRIÇÃO"
+                  value={productToEye?.description}
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+                <TextField
+                  label="LINK DA IMAGEM"
+                  value={productToEye?.image}
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+                <TextField
+                  label="CATEGORIA"
+                  value={
+                    categories.find((category) => category.id === productToEye.category_id)?.name || ""
+                  }
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+                <TextField
+                  label="PREÇO"
+                  value={productToEye?.price}
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+                <TextField
+                  label="CUSTO"
+                  value={productToEye?.cost}
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+                <TextField
+                  label="ESTOQUE"
+                  value={productToEye?.stock}
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* Botão de Fechar */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+              <Button onClick={handleCloseEyeProductModal} sx={{ marginLeft: 2 }}>
+                FECHAR
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      </Modal>
+        </Modal>
 
       {/* MODAL PARA VISUALIAR CATEGORIAS E REALIZAR AÇÕES */}
       <Modal
