@@ -23,7 +23,7 @@ const TableViewSales = () => {
     const formatDate = (dateString: any) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-    };
+    };    
 
     const colunasTabelaVendas = [
         { id: 'id', label: '#', minWidth: 66, align: 'left' as const },
@@ -167,9 +167,7 @@ const TableViewSales = () => {
                                 <TableRow>
                                     {colunasTabelaVendas.map((column) => (
                                         <TableCell key={column.id} align={column.align} sx={{ minWidth: column.minWidth }}>
-                                            {column.id == "sale_date" ? (
-                                                formatDate(column.label)
-                                            ) : (column.label)}
+                                            {column.label}
                                         </TableCell>
                                     ))}
                                 </TableRow>
@@ -260,7 +258,7 @@ const TableViewSales = () => {
                     <Divider />
                     <Typography variant="body1"><strong>CLIENTE:</strong> {selectedSale?.client_id}</Typography>
                     <Typography variant="body1"><strong>TOTAL DA VENDA:</strong> {`${parseFloat(selectedSale?.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}</Typography>
-                    <Typography variant="body1"><strong>DATA DA VENDA:</strong> {new Date(selectedSale?.sale_date).toLocaleDateString('pt-BR')}</Typography>
+                    <Typography variant="body1"><strong>DATA DA VENDA:</strong> {formatDate(selectedSale?.sale_date)}</Typography>
                     <Divider />
                     <Box sx={{ marginTop: 2 }}>
                         <Typography variant="h6" component="h3">PRODUTOS DA COMPRA:</Typography>
