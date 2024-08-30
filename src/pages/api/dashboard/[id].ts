@@ -15,6 +15,7 @@ const getProductsInSale = async (mysql: any, saleId: any) => {
 
 const calculateProfit = async (mysql: any, sales: any[], req: NextApiRequest) => {
     let totalProfitMargin = 0;
+    console.log(req);
 
     for (const sale of sales) {
         let totalCost = 0;
