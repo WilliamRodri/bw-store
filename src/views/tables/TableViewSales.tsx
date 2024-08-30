@@ -191,7 +191,7 @@ const TableViewSales = () => {
                                                         {column.id === 'total' ? (
                                                             `${parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`
                                                         ) : column.id === 'sale_date' ? (
-                                                            new Date(value).toLocaleDateString('pt-BR')
+                                                            formatDate(value)
                                                         ) : column.id === 'payment_method_id' ? (
                                                             paymentMethods.find((payment: any) => payment.id === value)?.type_payment || 'Não definido'
                                                         ) : column.id === 'actions' ? (
