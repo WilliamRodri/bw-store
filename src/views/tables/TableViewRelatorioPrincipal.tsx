@@ -139,7 +139,7 @@ const TableViewRelatorioPrincipal = () => {
                                             <Typography variant="body2">LUCRO</Typography>
                                             <Typography variant="h5">
                                             {data?.totalLucroOrdens != null ? 
-                                                data.totalLucroOrdens.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 
+                                                data?.totalLucroOrdens.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 
                                                 "R$ 0,00"}
                                             </Typography>
                                         </CardContent>
@@ -157,7 +157,7 @@ const TableViewRelatorioPrincipal = () => {
                                     <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
                                         <CardContent>
                                             <Typography variant="body2">T. PRD CADASTRADOS</Typography>
-                                            <Typography variant="h5">{dataGeral.productsLength}</Typography>
+                                            <Typography variant="h5">{dataGeral?.productsLength}</Typography>
                                         </CardContent>
                                     </Box>
                                 </Card>
@@ -166,7 +166,7 @@ const TableViewRelatorioPrincipal = () => {
                                         <CardContent>
                                             <Typography variant="body2">T. DE CLIENTES</Typography>
                                             <Typography variant="h5">
-                                                {dataGeral.clientsLength}
+                                                {dataGeral?.clientsLength}
                                             </Typography>
                                         </CardContent>
                                     </Box>
@@ -176,7 +176,7 @@ const TableViewRelatorioPrincipal = () => {
                                         <CardContent>
                                             <Typography variant="body2">T. DE VENDAS</Typography>
                                             <Typography variant="h5">
-                                                {dataGeral.salesLength}
+                                                {dataGeral?.salesLength}
                                             </Typography>
                                         </CardContent>
                                     </Box>
@@ -186,7 +186,7 @@ const TableViewRelatorioPrincipal = () => {
                                         <CardContent>
                                             <Typography variant="body2">T. DE OS PENDENTES</Typography>
                                             <Typography variant="h5">
-                                                {dataGeral.orderLength}
+                                                {dataGeral?.orderLength}
                                             </Typography>
                                         </CardContent>
                                     </Box>
