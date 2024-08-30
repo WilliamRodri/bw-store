@@ -38,6 +38,7 @@ const TableViewSales = () => {
 
                 // Dados das Vendas
                 setSales(data.sales);
+                console.log(data.sales[0]);
                 setPaymentMethods(data.paymentMethod);
                 setSalesProducts(data.salesProducts);
                 setProducts(data.products);
