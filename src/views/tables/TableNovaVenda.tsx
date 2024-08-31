@@ -38,7 +38,7 @@ const TableNovaVenda = () => {
                 const data = await response.json();
                 const dataClients = await responseClients.json();
 
-                const availableProducts = data.products.filter((product: any) => product.stock > 1);
+                const availableProducts = data.products.filter((product: any) => product.stock > 0);
 
                 setPaymentMethods(data.paymentMethod);
                 setProducts(availableProducts);
