@@ -6,9 +6,7 @@ export default async function exportPdf(order: any, clientData: any) {
     const responseClients = await fetch('/api/clientes');
     const dataClients = await responseClients.json();
     const clients = dataClients.clients;
-
-    console.log(clientData);
-    // Crie um elemento HTML para capturar a ordem de serviço
+    
     const content = document.createElement('div');
     content.innerHTML = `
         <div style="font-family: Arial, sans-serif; padding: 17px; color: #333;">
@@ -44,10 +42,7 @@ export default async function exportPdf(order: any, clientData: any) {
         </div>
     `;
 
-    // Adicione o conteúdo ao DOM temporariamente
     document.body.appendChild(content);
-
-    // Use html2canvas para capturar o conteúdo
     try {
         const canvas = await html2canvas(content, { useCORS: true });
         const imgData = canvas.toDataURL('image/png');
@@ -72,7 +67,6 @@ export default async function exportPdf(order: any, clientData: any) {
     } catch (error) {
         console.error('Erro ao gerar PDF:', error);
     } finally {
-        // Remova o conteúdo do DOM
         document.body.removeChild(content);
     }
 }

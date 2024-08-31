@@ -9,7 +9,6 @@ async function insertSale(req: any, data: any, res: any) {
         const regex = /\d+(\.\d{1,2})?/;
         const subtotal = parseFloat(data.subtotal.match(regex)[0]);
 
-        // Inserir a venda e obter o ID da venda gerada
         const saleId = await insertData(req, 'sales', {
             total: subtotal,
             discount: parseFloat(data.discountSale),
@@ -19,7 +18,6 @@ async function insertSale(req: any, data: any, res: any) {
         });
 
         for (const item of items) {
-            // Inserir cada produto da venda
             await insertData(req, 'sale_products', {
                 sale_id: saleId,
                 product_id: item.id,
@@ -32,11 +30,9 @@ async function insertSale(req: any, data: any, res: any) {
             const newStock = product[0].stock - parseInt(item.quantity);
             await updateData(req, 'products', { stock: newStock }, item.id);
         }
-
-        console.log(`[INFO] Venda gerada com sucesso.`);
         res.status(200).redirect('/sales');
     } catch (err) {
-        console.log(`[ERROR] Error(catch) ao gerar a venda ${err}`);
+        console.error(`[ERROR] Error(catch) ao gerar a venda ${err}`);
         res.status(200).redirect('/sales');
     }
 }

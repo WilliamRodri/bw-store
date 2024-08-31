@@ -51,8 +51,6 @@ const PrintPage = () => {
     if (error) return <p>{error}</p>;
     if (!data) return <p>No data available</p>;
 
-    console.log(data);
-
     return (
         <>
             <head>

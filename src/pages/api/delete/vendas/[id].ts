@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     try {
                         await updateStock(req, 'products', productId, quantity);
                     } catch (err) {
-                        console.log(`[ERROR] Error ao atualizar o estoque do produto ${productId}: ${err}`);
+                        console.error(`[ERROR] Error ao atualizar o estoque do produto ${productId}: ${err}`);
                     }
                 }));
             }
