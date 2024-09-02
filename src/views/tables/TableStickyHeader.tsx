@@ -179,19 +179,19 @@ const TableStickyHeader = () => {
     }
   };
 
-  function convertLink(link: string) {
-    if (link.includes('dl=0')) {
+  function convertLink(link: string | null) {
+    if (link && link.includes('dl=0')) {
       return link.replace('dl=0', 'raw=1');
     }
-
+  
     return link;
-  }
+  }  
 
   const handleSaveEditProduct = async () => {
     const data = {
       name: productToEdit?.name,
       description: productToEdit?.description,
-      image: productToEdit?.image != "" ? convertLink(productToEdit?.image) : "",
+      image: productToEdit?.image ? convertLink(productToEdit?.image) : "",
       category_id: productToEdit?.category_id,
       price: productToEdit?.price,
       cost: productToEdit?.cost,
@@ -223,6 +223,7 @@ const TableStickyHeader = () => {
       setProductToEdit({
         name: '',
         description: '',
+        image: '',
         category_id: '',
         price: '',
         cost: '',
