@@ -10,6 +10,11 @@ const PrintPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [clientData, setClientData] = useState<any>([]);
 
+    const formatDate = (dateString: any) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+    }; 
+
     useEffect(() => {
         const cookies = parseCookies();
         const data = cookies.clientData;
@@ -68,7 +73,7 @@ const PrintPage = () => {
                     <p><strong>Endereço: </strong>{clientData.endereco}</p>
                     <hr />
                     <p><strong>Cliente:</strong> {data.client.name}</p>
-                    <p><strong>Data da Venda:</strong> {new Date(data.sale.sale_date).toLocaleDateString('pt-BR')}</p>
+                    <p><strong>Data da Venda:</strong> {formatDate(data.sale.sale_date)}</p>
                     <hr />
                     <h2>Produtos</h2>
                     <table>

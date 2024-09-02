@@ -191,7 +191,7 @@ const TableStickyHeader = () => {
     const data = {
       name: productToEdit?.name,
       description: productToEdit?.description,
-      image: convertLink(productToEdit?.image),
+      image: productToEdit?.image != "" ? convertLink(productToEdit?.image) : "",
       category_id: productToEdit?.category_id,
       price: productToEdit?.price,
       cost: productToEdit?.cost,
@@ -280,7 +280,7 @@ const TableStickyHeader = () => {
         stock: data.stock,
         cost: parseFloat(data.cost),
         status: 'visible',
-        image: convertLink(data.image)
+        image: data?.image != "" ? convertLink(data?.image) : ""
       };
       
       try {
