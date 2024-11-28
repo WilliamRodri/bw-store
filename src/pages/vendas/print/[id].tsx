@@ -46,9 +46,7 @@ const PrintPage = () => {
     useEffect(() => {
         if (!loading && data) {
             window.print();
-            window.addEventListener('afterprint', () => {
-                window.location.href = '/vendas';
-            });
+            
         }
     }, [loading, data]);
 
